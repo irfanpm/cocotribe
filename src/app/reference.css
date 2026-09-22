@@ -1,0 +1,2554 @@
+/* The compact COCOTRIBE composition follows the supplied desktop reference. */
+.reference-site {
+  --green: #214b2c;
+  --dark: #17231b;
+  --cream: #fcfaf5;
+  background: #fcfaf5;
+  font-family: "DM Sans", "Noto Sans Malayalam", Arial, sans-serif;
+  color: #17231b;
+}
+.reference-site .button {
+  border-radius: 5px;
+  background: #214b2c;
+  border-color: #214b2c;
+}
+.reference-site .button.outline {
+  background: transparent;
+  color: #214b2c;
+}
+.reference-site h1,
+.reference-site h2 {
+  font-family: Georgia, "Noto Sans Malayalam", serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+.reference-crop {
+  background-repeat: no-repeat;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ref-header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8%;
+  gap: 26px;
+  background: #fdfbf7;
+  border-bottom: 1px solid #eee7d9;
+  position: relative;
+  z-index: 40;
+}
+.ref-logo {
+  width: 207px;
+  height: 47px;
+}
+.ref-nav {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+.ref-nav a {
+  font-size: 12px;
+  white-space: nowrap;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  color: #0d1613;
+}
+.ref-nav a[aria-current="page"] {
+  color: #174b2b;
+  font-weight: 600;
+}
+.ref-nav a[aria-current="page"]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  height: 2px;
+  background: #214b2c;
+}
+.ref-header-actions {
+  display: flex;
+  gap: 26px;
+  align-items: center;
+}
+.ref-header .language {
+  padding: 2px;
+  border: 1px solid #e7e2d8;
+  background: #f5f2eb;
+}
+.ref-header .language button {
+  font-size: 10px;
+  min-height: 27px;
+  min-width: 36px;
+  padding: 4px 9px;
+}
+.ref-gold-button {
+  background: linear-gradient(110deg, #c99a49, #a9660e);
+  border: 1px solid #a76f25;
+  border-radius: 9px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 38px;
+  min-width: 156px;
+  padding: 7px 25px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px #ffffff30;
+}
+.ref-gold-button:hover {
+  color: white;
+  background: #a76f25;
+}
+.ref-menu {
+  display: none;
+  background: transparent;
+  color: #214b2c;
+  min-height: 44px;
+  min-width: 44px;
+  align-items: center;
+  justify-content: center;
+}
+.reference-home h2 {
+  font-size: 21px;
+  line-height: 1.1;
+  margin: 0;
+}
+.reference-home h3 {
+  font-size: 12px;
+  line-height: 1.3;
+  margin: 0;
+  color: #111c18;
+}
+.reference-home p {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  color: #29332d;
+}
+.ref-hero {
+  height: 296px;
+  position: relative;
+  background: #eee9db url("/images/reference-hero.jpg") center 54% / cover
+    no-repeat;
+  isolation: isolate;
+}
+.ref-hero:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    #f7f5ed 0%,
+    #f7f5edf5 26%,
+    #f7f5ed90 33%,
+    transparent 42%
+  );
+  z-index: -1;
+}
+.ref-hero-copy {
+  position: relative;
+  width: 35%;
+  padding: 23px 0 0 3.3%;
+  z-index: 2;
+}
+.ref-hero-copy .ref-kicker {
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  color: #6b390a;
+  font-weight: 500;
+  margin-bottom: 7px;
+  white-space: nowrap;
+}
+.ref-hero h1 {
+  font-size: 39px;
+  line-height: 1.03;
+  letter-spacing: -0.026em;
+  color: #202717;
+  margin: 0 0 10px;
+  max-width: 530px;
+}
+.ref-hero-copy .ref-hero-description {
+  font-size: 14px;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.ref-hero-buttons {
+  display: flex;
+  gap: 16px;
+  margin: 13px 0 17px;
+}
+.ref-hero-buttons .button {
+  min-height: 43px;
+  padding: 10px 20px;
+  min-width: 167px;
+  font-size: 15px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.ref-hero-buttons .button.outline {
+  font-size: 13px;
+  min-width: 177px;
+}
+.ref-hero-copy .ref-malayalam {
+  font-family: "Noto Sans Malayalam", sans-serif;
+  color: #754316;
+  font-size: 14px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+.ref-hero-copy .ref-subline {
+  font-size: 14px;
+  white-space: nowrap;
+}
+.ref-tradition {
+  position: absolute;
+  left: 32%;
+  top: 61%;
+  font-family: "Cormorant Garamond", cursive;
+  font-size: 24px;
+  font-style: italic;
+  color: #64431f;
+  line-height: 0.95;
+  transform: rotate(-12deg);
+  text-align: center;
+}
+.ref-booking-motto {
+  position: absolute;
+  left: 60.5%;
+  bottom: 12px;
+  text-align: center !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  letter-spacing: 0.03em;
+  color: #763f0c !important;
+}
+.ref-booking-motto span {
+  display: block;
+  width: 27px;
+  height: 1px;
+  background: #8b693b;
+  margin: 8px auto 0;
+}
+.ref-booking {
+  position: absolute;
+  top: 5px;
+  right: 10.6%;
+  width: 20%;
+  min-width: 310px;
+  min-height: 348px;
+  padding: 12px 18px 13px;
+  background: #fffdfa;
+  z-index: 5;
+  border: 1px solid #ecdfca;
+  border-radius: 13px;
+  box-shadow: 0 3px 8px #65431526;
+}
+.ref-booking h2 {
+  font-size: 21px;
+  margin-bottom: 1px;
+}
+.ref-booking .ref-book-sub {
+  font-size: 11px;
+  line-height: 1.7;
+  margin-bottom: 4px;
+  font-family: "Noto Sans Malayalam", sans-serif;
+}
+.ref-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 14px;
+}
+.ref-form-grid > label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.ref-form-grid input:not([type="checkbox"]):not([type="radio"]),
+.ref-form-grid select {
+  min-height: 29px;
+  height: 29px;
+  font-size: 10px;
+  padding: 5px 8px;
+  border: 1px solid #d7d6d1;
+  border-radius: 5px;
+  background: #fff;
+  min-width: 0;
+}
+.ref-form-grid input[type="date"] {
+  font-size: 11px;
+}
+.ref-span-two {
+  grid-column: 1/-1;
+}
+.ref-proceed {
+  width: 100%;
+  min-height: 37px;
+  margin-top: 10px;
+  gap: 12px;
+  font-size: 11px;
+  padding: 8px !important;
+}
+.ref-booking > small {
+  display: block;
+  text-align: center;
+  font-size: 9px;
+  color: #3d3b38;
+  margin-top: 7px;
+}
+.ref-blessing {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 10.5%;
+  height: 353px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  padding: 35px 16px 8px;
+  background: #24160633;
+  color: #fffbe9;
+}
+.ref-blessing > p {
+  color: #fffbe9;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  line-height: 1.35;
+  text-shadow: 0 1px 3px #000;
+}
+.ref-blessing > div {
+  font-family: "Noto Sans Malayalam", sans-serif;
+  color: #fff7dc;
+  text-shadow: 0 1px 3px #000;
+}
+.ref-blessing > div > span {
+  font-size: 21px;
+  display: block;
+  line-height: 1.4;
+}
+.ref-blessing > div > small {
+  display: block;
+  font-family: "DM Sans", sans-serif;
+  font-size: 11px;
+}
+.ref-how {
+  height: 69px;
+  display: flex;
+  gap: 25px;
+  align-items: center;
+  padding: 8px 32% 8px 3.3%;
+  background: #fffefa;
+}
+.ref-how-title {
+  min-width: 190px;
+}
+.ref-how-title h2 {
+  font-size: 22px;
+}
+.ref-how-title p {
+  font-size: 12px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+.ref-steps {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  gap: 0;
+}
+.ref-step {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  padding: 0 16px;
+  border-right: 1px solid #e5dfd3;
+  flex-shrink: 0;
+}
+.ref-step:last-child {
+  border: 0;
+}
+.ref-step h3 {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+.ref-step p {
+  font-size: 11px;
+  font-family: "Noto Sans Malayalam", sans-serif;
+  white-space: nowrap;
+}
+.ref-circle {
+  width: 47px;
+  height: 47px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fbebcb;
+  border-radius: 50%;
+  color: #6a551e;
+  flex-shrink: 0;
+  border: 1px solid #fff;
+}
+.ref-circle > .reference-crop {
+  width: 31px;
+  height: 30px;
+}
+.ref-commerce {
+  display: grid;
+  grid-template-columns: 1.82fr 1.06fr 0.69fr;
+  gap: 24px;
+  padding: 8px 2.5% 9px 3.3%;
+}
+.ref-section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.ref-section-heading p {
+  font-size: 12px;
+  margin-top: 1px;
+}
+.ref-section-heading > a {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 11px;
+  color: #163e25;
+  font-weight: 600;
+  min-height: 32px;
+}
+.ref-product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+}
+.ref-product-card {
+  border: 1px solid #ece6db;
+  box-shadow: 0 3px 7px #6446160d;
+  border-radius: 8px;
+  background: #fffcf7;
+  padding: 4px;
+  min-width: 0;
+}
+.ref-product-photo {
+  width: 100%;
+  height: 73px;
+  border-radius: 5px;
+}
+.ref-product-card > div {
+  padding: 5px 8px 4px;
+}
+.ref-product-card h3 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 2px;
+  line-height: 1.25;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+}
+.ref-product-card p {
+  font-size: 11px;
+  line-height: 1.35;
+  min-height: 29px;
+  margin-bottom: 4px;
+}
+.ref-product-card strong {
+  font-size: 12px;
+  display: block;
+  line-height: 1.5;
+  margin-bottom: 5px;
+}
+.ref-card-button {
+  min-height: 26px !important;
+  height: 26px;
+  width: 100%;
+  padding: 3px 8px !important;
+  font-size: 10px !important;
+  gap: 7px;
+}
+.ref-card-button svg {
+  width: 14px;
+  height: 14px;
+}
+.ref-services-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.ref-service {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid #eee8dc;
+  border-radius: 9px;
+  min-height: 79px;
+  background: #fffcf8;
+  padding: 9px 12px;
+}
+.ref-service h3 {
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+.ref-service p {
+  font-size: 11px;
+  line-height: 1.45;
+}
+.ref-service .ref-circle {
+  width: 52px;
+  height: 52px;
+}
+.ref-service .ref-circle > svg {
+  color: #335c30;
+}
+.ref-services .ref-section-heading h2 {
+  font-size: 21px;
+}
+.ref-payments {
+  border-left: 1px solid #e4dfd5;
+  padding-left: 24px;
+}
+.ref-payment-card {
+  padding: 8px 9px;
+  border: 1px solid #e7e1d4;
+  border-radius: 9px;
+  background: #fffefa;
+  box-shadow: 0 2px 8px #614c1b08;
+  min-height: 182px;
+  text-align: center;
+}
+.ref-payment-card > strong {
+  font-size: 12px;
+  display: block;
+  margin-bottom: 9px;
+}
+.ref-payment-logos {
+  width: 220px;
+  max-width: 100%;
+  height: 63px;
+  margin: 0 auto 14px;
+}
+.ref-delivery {
+  border-top: 1px solid #ddd8cd;
+  display: flex;
+  text-align: left;
+  align-items: center;
+  gap: 17px;
+  padding: 12px 10px 0;
+}
+.ref-delivery > svg {
+  color: #846027;
+  flex-shrink: 0;
+}
+.ref-delivery h3 {
+  font-size: 12px;
+  margin: 0 0 4px;
+}
+.ref-delivery p {
+  font-size: 11px;
+  line-height: 1.4;
+}
+.ref-trust {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: #f3f1e8;
+  padding: 7px 3.3%;
+  min-height: 62px;
+}
+.ref-trust-title {
+  flex-shrink: 0;
+  width: 218px;
+}
+.ref-trust-title h2 {
+  font-size: 18px;
+  white-space: nowrap;
+}
+.ref-trust-title p {
+  font-size: 12px;
+  margin-top: 2px;
+}
+.ref-reasons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+.ref-reason {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.ref-reason .ref-circle {
+  width: 40px;
+  height: 40px;
+}
+.ref-reason h3 {
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+.ref-reason p {
+  font-size: 10px;
+  line-height: 1.3;
+  max-width: 132px;
+}
+.ref-whatsapp-band {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 34%;
+  border-left: 1px solid #96a08b;
+  padding: 8px 14px;
+  border-radius: 9px;
+  background: linear-gradient(105deg, #2b9d5c, #286e44);
+  color: white;
+  margin-left: 8px;
+  min-height: 48px;
+}
+.ref-whatsapp-band > svg {
+  color: white;
+  flex-shrink: 0;
+}
+.ref-whatsapp-band > div {
+  flex: 1;
+  min-width: 0;
+}
+.ref-whatsapp-band h3 {
+  color: white;
+  font-size: 13px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+}
+.ref-whatsapp-band p {
+  color: white;
+  font-size: 10px;
+  line-height: 1.35;
+}
+.ref-chat-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  color: #204b2d;
+  background: white;
+  border-radius: 30px;
+  padding: 5px 17px;
+  font-size: 10px;
+  font-weight: 600;
+  min-height: 28px;
+}
+.ref-chat-pill > svg:first-child {
+  display: none;
+}
+.ref-faq {
+  display: flex;
+  align-items: flex-start;
+  gap: 23px;
+  padding: 6px 3.3% 7px;
+  background: #fffefa;
+}
+.ref-faq-heading {
+  display: flex;
+  gap: 23px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.ref-faq-heading h2 {
+  font-size: 17px;
+  line-height: 1.2;
+}
+.ref-faq-heading p {
+  font-size: 11px;
+}
+.ref-faq-heading > a {
+  font-size: 10px;
+  color: #234b2d;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.ref-faq-items {
+  display: grid;
+  grid-template-columns: 1.35fr 1.2fr 1.1fr 1fr;
+  gap: 12px;
+  flex: 1;
+}
+.ref-faq-items > div {
+  min-width: 0;
+}
+.ref-faq-items button {
+  font-size: 9px;
+  background: #fdfbf7;
+  border: 1px solid #eee8df;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 9px;
+  gap: 10px;
+  min-height: 29px;
+  width: 100%;
+  text-align: left;
+  line-height: 1.4;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ref-faq-items button > span {
+  font-size: 20px;
+  font-weight: 400;
+}
+.ref-faq-answer {
+  padding: 12px 6px !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+}
+.ref-footer {
+  background: #1c3022;
+  padding: 0;
+  color: #f2edd8;
+}
+.ref-footer-main {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 9px 3.3% 7px;
+  min-height: 86px;
+}
+.ref-footer-logo {
+  width: 198px;
+  height: 42px;
+}
+.ref-footer-brand {
+  flex-shrink: 0;
+}
+.ref-footer-motto {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  border-right: 1px solid #777b57;
+  min-height: 58px;
+}
+.ref-footer-motto > svg,
+.ref-footer-good > svg {
+  color: #817e43;
+  flex-shrink: 0;
+  stroke-width: 1.3;
+}
+.ref-footer-motto p,
+.ref-footer-good p {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  line-height: 1.3;
+  color: #f5edc8;
+  margin: 0;
+}
+.ref-footer-links {
+  width: 18%;
+  align-self: flex-start;
+}
+.ref-footer h3 {
+  font-family: "DM Sans", sans-serif;
+  color: white;
+  font-size: 12px;
+  margin: 0 0 1px;
+  line-height: 1.4;
+}
+.ref-footer-links > div {
+  display: grid;
+  grid-template-rows: repeat(4, 15px);
+  grid-auto-flow: column;
+  grid-template-columns: 1fr 1fr;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.ref-footer-contact {
+  width: 23%;
+  font-size: 10px;
+  align-self: flex-start;
+}
+.ref-footer-contact > a,
+.ref-footer-contact > p {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  color: #f3ebd4;
+  line-height: 1.45;
+  font-size: 10px;
+  margin: 0;
+}
+.ref-footer-contact .ref-footer-wa {
+  min-height: 0;
+  font-weight: 400;
+}
+.ref-footer-contact .ref-footer-wa svg {
+  height: 12px;
+  width: 12px;
+}
+.ref-footer-contact > p svg {
+  flex-shrink: 0;
+}
+.ref-footer-good {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-left: 1px solid #777b57;
+  padding-left: 35px;
+  width: 25%;
+}
+.ref-footer-good p {
+  font-size: 13px;
+}
+.ref-footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid #ffffff18;
+  padding: 5px 3.3%;
+  font-size: 9px;
+  color: #c6c399;
+}
+.ref-footer-bottom > div {
+  display: flex;
+  gap: 10px;
+}
+.ref-footer-bottom > span:last-child {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.ref-site-notice {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #c9c9ae;
+  padding: 3px 18px 7px;
+}
+.reference-site .page-heading h1 {
+  font-size: 3rem;
+}
+.reference-site .page-space {
+  padding-top: 40px;
+}
+.reference-site .brand {
+  font-family: Georgia, serif;
+}
+.reference-site .panel h2 {
+  font-size: 1.8rem;
+}
+@media (min-width: 1800px) {
+  .ref-header {
+    padding-left: 8%;
+    padding-right: 8%;
+  }
+  .ref-hero {
+    height: 330px;
+  }
+  .ref-hero h1 {
+    font-size: 44px;
+  }
+  .ref-hero-copy {
+    padding-top: 32px;
+  }
+  .ref-booking {
+    min-height: 375px;
+    padding: 17px 20px;
+  }
+  .ref-form-grid {
+    gap: 10px 15px;
+  }
+  .ref-form-grid input:not([type="checkbox"]):not([type="radio"]),
+  .ref-form-grid select {
+    height: 32px;
+  }
+  .ref-blessing {
+    height: 397px;
+  }
+  .ref-how {
+    height: 78px;
+  }
+  .ref-product-photo {
+    height: 90px;
+  }
+  .ref-product-card p {
+    font-size: 12px;
+  }
+  .ref-service {
+    min-height: 93px;
+  }
+  .ref-payment-card {
+    min-height: 207px;
+  }
+  .ref-trust {
+    min-height: 74px;
+  }
+  .ref-faq {
+    min-height: 54px;
+    align-items: center;
+  }
+  .ref-footer-main {
+    min-height: 100px;
+  }
+}
+@media (max-width: 1550px) {
+  .ref-header {
+    padding: 0 4%;
+    gap: 20px;
+  }
+  .ref-nav {
+    gap: 23px;
+  }
+  .ref-header-actions {
+    gap: 18px;
+  }
+  .ref-hero h1 {
+    font-size: 34px;
+  }
+  .ref-hero-copy {
+    width: 37%;
+    padding-left: 3.3%;
+  }
+  .ref-hero-copy .ref-hero-description {
+    font-size: 12px;
+  }
+  .ref-hero-copy .ref-subline {
+    font-size: 12px;
+  }
+  .ref-hero-copy .ref-malayalam {
+    font-size: 12px;
+  }
+  .ref-booking {
+    min-width: 290px;
+    width: 21.5%;
+    right: 10%;
+  }
+  .ref-blessing {
+    width: 10%;
+  }
+  .ref-how-title {
+    min-width: 165px;
+  }
+  .ref-how {
+    gap: 13px;
+    padding-right: 32%;
+  }
+  .ref-step {
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .ref-circle {
+    width: 42px;
+    height: 42px;
+  }
+  .ref-step h3 {
+    font-size: 11px;
+  }
+  .ref-step p {
+    font-size: 10px;
+  }
+  .ref-commerce {
+    gap: 18px;
+    grid-template-columns: 1.8fr 1.04fr 0.71fr;
+  }
+  .ref-section-heading h2 {
+    font-size: 19px;
+  }
+  .ref-section-heading p {
+    font-size: 11px;
+  }
+  .ref-section-heading > a {
+    font-size: 10px;
+  }
+  .ref-product-grid {
+    gap: 9px;
+  }
+  .ref-product-card > div {
+    padding: 5px;
+  }
+  .ref-product-card h3 {
+    font-size: 11px;
+  }
+  .ref-product-card p {
+    font-size: 10px;
+    min-height: 30px;
+  }
+  .ref-product-card strong {
+    font-size: 11px;
+  }
+  .ref-service {
+    padding: 8px;
+    gap: 8px;
+  }
+  .ref-service .ref-circle {
+    width: 43px;
+    height: 43px;
+  }
+  .ref-service h3 {
+    font-size: 10px;
+  }
+  .ref-service p {
+    font-size: 10px;
+  }
+  .ref-payments {
+    padding-left: 18px;
+  }
+  .ref-payment-card > strong {
+    font-size: 10px;
+  }
+  .ref-payment-logos {
+    height: 57px;
+  }
+  .ref-trust {
+    gap: 10px;
+  }
+  .ref-trust-title {
+    width: 192px;
+  }
+  .ref-trust-title h2 {
+    font-size: 16px;
+  }
+  .ref-reasons {
+    gap: 8px;
+  }
+  .ref-reason {
+    gap: 6px;
+  }
+  .ref-reason .ref-circle {
+    width: 33px;
+    height: 33px;
+  }
+  .ref-reason h3 {
+    font-size: 9px;
+  }
+  .ref-reason p {
+    font-size: 9px;
+  }
+  .ref-whatsapp-band {
+    padding: 8px 10px;
+    gap: 9px;
+    width: 33%;
+  }
+  .ref-whatsapp-band h3 {
+    font-size: 11px;
+  }
+  .ref-whatsapp-band p {
+    font-size: 9px;
+  }
+  .ref-chat-pill {
+    font-size: 9px;
+    padding: 5px 11px;
+  }
+  .ref-faq {
+    gap: 14px;
+  }
+  .ref-faq-heading {
+    gap: 15px;
+  }
+  .ref-faq-heading h2 {
+    font-size: 15px;
+  }
+  .ref-faq-items {
+    gap: 8px;
+  }
+  .ref-faq-items button {
+    font-size: 8px;
+    gap: 7px;
+    padding: 5px 6px;
+  }
+  .ref-footer-main {
+    gap: 20px;
+  }
+  .ref-footer-motto > svg {
+    width: 50px;
+  }
+  .ref-footer-motto p {
+    font-size: 12px;
+  }
+  .ref-footer-good {
+    padding-left: 20px;
+    gap: 13px;
+  }
+  .ref-footer-good > svg {
+    width: 55px;
+  }
+}
+@media (max-width: 1300px) {
+  .ref-header {
+    padding: 0 3.3%;
+    gap: 15px;
+  }
+  .ref-logo {
+    width: 190px;
+    height: 43px;
+  }
+  .ref-nav {
+    gap: 19px;
+  }
+  .ref-nav a {
+    font-size: 11px;
+  }
+  .ref-gold-button {
+    min-width: 125px;
+    font-size: 13px;
+  }
+  .ref-header-actions {
+    gap: 15px;
+  }
+  .ref-hero {
+    height: 300px;
+  }
+  .ref-hero h1 {
+    font-size: 30px;
+    max-width: 420px;
+  }
+  .ref-hero-copy {
+    width: 38%;
+    padding-top: 27px;
+  }
+  .ref-hero-copy .ref-kicker {
+    font-size: 9px;
+  }
+  .ref-hero-buttons {
+    gap: 10px;
+    margin: 15px 0 18px;
+  }
+  .ref-hero-buttons .button {
+    min-width: 135px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .ref-hero-buttons .button.outline {
+    min-width: 152px;
+    font-size: 11px;
+  }
+  .ref-tradition {
+    left: 34%;
+    font-size: 22px;
+    top: 65%;
+  }
+  .ref-booking-motto {
+    left: 57%;
+    font-size: 10px !important;
+  }
+  .ref-booking {
+    right: 9%;
+    width: 24%;
+    min-width: 280px;
+    padding: 12px 14px;
+    min-height: 350px;
+  }
+  .ref-blessing {
+    width: 9%;
+    height: 359px;
+    padding: 36px 7px 8px;
+  }
+  .ref-blessing > p {
+    font-size: 13px;
+  }
+  .ref-blessing > div > span {
+    font-size: 17px;
+  }
+  .ref-blessing > div > small {
+    font-size: 9px;
+  }
+  .ref-how {
+    padding-right: 34%;
+    height: 69px;
+  }
+  .ref-how-title {
+    min-width: 140px;
+  }
+  .ref-how-title h2 {
+    font-size: 19px;
+  }
+  .ref-how-title p {
+    font-size: 10px;
+  }
+  .ref-step {
+    padding: 0 9px;
+    gap: 6px;
+  }
+  .ref-step .ref-circle {
+    width: 35px;
+    height: 35px;
+  }
+  .ref-step .ref-circle > svg {
+    width: 22px;
+  }
+  .ref-step h3 {
+    font-size: 9px;
+  }
+  .ref-step p {
+    font-size: 9px;
+  }
+  .ref-commerce {
+    gap: 15px;
+    grid-template-columns: 1.75fr 1fr 0.7fr;
+  }
+  .ref-section-heading {
+    gap: 5px;
+  }
+  .ref-section-heading h2,
+  .ref-services .ref-section-heading h2 {
+    font-size: 18px;
+  }
+  .ref-section-heading p {
+    font-size: 10px;
+  }
+  .ref-section-heading > a {
+    font-size: 9px;
+    gap: 4px;
+  }
+  .ref-product-grid {
+    gap: 7px;
+  }
+  .ref-product-photo {
+    height: 66px;
+  }
+  .ref-product-card h3 {
+    font-size: 10px;
+  }
+  .ref-product-card p {
+    font-size: 9px;
+    min-height: 37px;
+  }
+  .ref-product-card strong {
+    font-size: 10px;
+  }
+  .ref-card-button {
+    font-size: 9px !important;
+  }
+  .ref-services-grid {
+    gap: 8px;
+  }
+  .ref-service {
+    min-height: 82px;
+    padding: 8px 6px;
+    gap: 6px;
+  }
+  .ref-service h3 {
+    font-size: 9px;
+  }
+  .ref-service p {
+    font-size: 9px;
+  }
+  .ref-service .ref-circle {
+    width: 36px;
+    height: 36px;
+  }
+  .ref-service .ref-circle > .reference-crop {
+    width: 26px;
+    height: 26px;
+  }
+  .ref-service .ref-circle > svg {
+    width: 25px;
+  }
+  .ref-payments {
+    padding-left: 15px;
+  }
+  .ref-payment-card {
+    min-height: 183px;
+  }
+  .ref-payment-card > strong {
+    font-size: 9px;
+  }
+  .ref-delivery {
+    gap: 10px;
+    padding: 12px 0 0;
+  }
+  .ref-delivery > svg {
+    width: 31px;
+  }
+  .ref-delivery h3 {
+    font-size: 11px;
+  }
+  .ref-delivery p {
+    font-size: 10px;
+  }
+  .ref-trust-title {
+    width: 173px;
+  }
+  .ref-trust-title h2 {
+    font-size: 15px;
+  }
+  .ref-trust-title p {
+    font-size: 11px;
+  }
+  .ref-reason p {
+    font-size: 8px;
+  }
+  .ref-reason h3 {
+    font-size: 8px;
+  }
+  .ref-reason .ref-circle {
+    width: 31px;
+    height: 31px;
+  }
+  .ref-reason .ref-circle > svg {
+    width: 20px;
+  }
+  .ref-whatsapp-band {
+    width: 32%;
+    gap: 7px;
+  }
+  .ref-whatsapp-band > svg {
+    width: 29px;
+  }
+  .ref-whatsapp-band h3 {
+    font-size: 10px;
+  }
+  .ref-whatsapp-band p {
+    font-size: 8px;
+  }
+  .ref-chat-pill {
+    font-size: 8px;
+    padding: 4px 9px;
+  }
+  .ref-faq-heading h2 {
+    font-size: 14px;
+  }
+  .ref-faq-heading p {
+    font-size: 10px;
+  }
+  .ref-faq-heading > a {
+    font-size: 9px;
+    gap: 5px;
+  }
+  .ref-faq-items {
+    grid-template-columns: 1.25fr 1.2fr 1fr 0.9fr;
+    gap: 6px;
+  }
+  .ref-faq-items button {
+    font-size: 7px;
+    padding: 4px 6px;
+  }
+  .ref-footer-main {
+    gap: 18px;
+  }
+  .ref-footer-logo {
+    width: 175px;
+    height: 37px;
+  }
+  .ref-footer-motto {
+    gap: 9px;
+  }
+  .ref-footer-motto > svg {
+    width: 40px;
+  }
+  .ref-footer-motto p {
+    font-size: 11px;
+  }
+  .ref-footer-links {
+    width: 15%;
+  }
+  .ref-footer-contact {
+    width: 26%;
+  }
+  .ref-footer-good {
+    width: 20%;
+    gap: 10px;
+    padding-left: 17px;
+  }
+  .ref-footer-good > svg {
+    width: 45px;
+  }
+  .ref-footer-good p {
+    font-size: 11px;
+  }
+}
+@media (max-width: 1100px) {
+  .ref-nav {
+    gap: 13px;
+  }
+  .ref-nav a {
+    font-size: 10px;
+  }
+  .ref-logo {
+    width: 170px;
+    height: 39px;
+  }
+  .ref-header-actions {
+    gap: 10px;
+  }
+  .ref-gold-button {
+    min-width: 100px;
+  }
+  .ref-booking {
+    right: 2%;
+    width: 30%;
+    min-width: 285px;
+  }
+  .ref-blessing {
+    display: none;
+  }
+  .ref-hero-copy {
+    width: 47%;
+  }
+  .ref-hero h1 {
+    font-size: 30px;
+  }
+  .ref-tradition {
+    left: 43%;
+  }
+  .ref-booking-motto {
+    left: 58%;
+    font-size: 9px !important;
+  }
+  .ref-how {
+    padding-right: 32%;
+    gap: 10px;
+  }
+  .ref-step {
+    padding: 0 6px;
+  }
+  .ref-step h3 {
+    font-size: 9px;
+  }
+  .ref-step p {
+    font-size: 8px;
+  }
+  .ref-step .ref-circle {
+    width: 30px;
+    height: 30px;
+  }
+  .ref-how-title {
+    min-width: 120px;
+  }
+  .ref-how-title h2 {
+    font-size: 17px;
+  }
+  .ref-how-title p {
+    font-size: 9px;
+  }
+  .ref-commerce {
+    grid-template-columns: 1.5fr 1fr;
+    gap: 20px;
+  }
+  .ref-payments {
+    grid-column: 1/-1;
+    border: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+  .ref-payment-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+    min-height: 75px;
+    padding: 10px 20px;
+  }
+  .ref-payment-card > strong {
+    font-size: 12px;
+    margin: 0;
+    max-width: 140px;
+    text-align: left;
+  }
+  .ref-payment-logos {
+    width: 180px;
+    height: 51px;
+    margin: 0;
+  }
+  .ref-delivery {
+    padding: 0 0 0 20px;
+    border-top: 0;
+    border-left: 1px solid #ddd8cd;
+    max-width: 230px;
+  }
+  .ref-product-card h3 {
+    font-size: 12px;
+  }
+  .ref-product-card p {
+    font-size: 11px;
+    min-height: 43px;
+  }
+  .ref-product-photo {
+    height: 78px;
+  }
+  .ref-product-card strong {
+    font-size: 12px;
+  }
+  .ref-services .ref-section-heading h2,
+  .ref-section-heading h2 {
+    font-size: 21px;
+  }
+  .ref-service {
+    min-height: 94px;
+  }
+  .ref-service h3 {
+    font-size: 11px;
+    white-space: normal;
+  }
+  .ref-service p {
+    font-size: 11px;
+  }
+  .ref-service .ref-circle {
+    width: 45px;
+    height: 45px;
+  }
+  .ref-trust {
+    flex-wrap: wrap;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  .ref-reason h3 {
+    font-size: 11px;
+  }
+  .ref-reason p {
+    font-size: 10px;
+  }
+  .ref-reason .ref-circle {
+    width: 37px;
+    height: 37px;
+  }
+  .ref-whatsapp-band {
+    width: 100%;
+    margin: 5px 0 0;
+    justify-content: center;
+  }
+  .ref-whatsapp-band > div {
+    flex: 0 1 auto;
+  }
+  .ref-whatsapp-band h3 {
+    font-size: 14px;
+  }
+  .ref-whatsapp-band p {
+    font-size: 12px;
+  }
+  .ref-chat-pill {
+    font-size: 11px;
+    margin-left: 20px;
+  }
+  .ref-faq {
+    flex-direction: column;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    gap: 12px;
+  }
+  .ref-faq-heading {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .ref-faq-heading h2 {
+    font-size: 18px;
+  }
+  .ref-faq-heading p {
+    font-size: 12px;
+  }
+  .ref-faq-heading > a {
+    font-size: 12px;
+  }
+  .ref-faq-items {
+    width: 100%;
+  }
+  .ref-faq-items button {
+    font-size: 10px;
+    white-space: normal;
+    min-height: 42px;
+  }
+  .ref-footer-good {
+    display: none;
+  }
+  .ref-footer-motto {
+    flex: 1;
+  }
+  .ref-footer-links {
+    width: 18%;
+  }
+  .ref-footer-contact {
+    width: 30%;
+  }
+}
+@media (max-width: 850px) {
+  .ref-header {
+    height: 72px;
+    padding: 0 22px;
+  }
+  .ref-logo {
+    width: 195px;
+    height: 44px;
+  }
+  .ref-nav {
+    display: none;
+  }
+  .ref-nav.open {
+    display: flex;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    background: #fffdf8;
+    padding: 15px 24px;
+    gap: 0;
+    box-shadow: 0 7px 15px #14241920;
+  }
+  .ref-nav.open a {
+    font-size: 16px;
+    min-height: 48px;
+  }
+  .ref-nav a[aria-current="page"]:after {
+    display: none;
+  }
+  .ref-menu {
+    display: flex;
+  }
+  .ref-header .language button {
+    min-height: 40px;
+    font-size: 12px;
+  }
+  .ref-gold-button {
+    display: none;
+  }
+  .ref-hero {
+    height: auto;
+    min-height: 670px;
+    background-size: auto 400px;
+    background-position: 50% 0;
+    background-repeat: no-repeat;
+  }
+  .ref-hero:before {
+    bottom: auto;
+    height: 340px;
+    background: linear-gradient(
+      90deg,
+      #f7f5ed 0%,
+      #f7f5ede8 35%,
+      transparent 75%
+    );
+  }
+  .ref-hero-copy {
+    width: 70%;
+    padding: 25px 24px 30px;
+  }
+  .ref-hero h1 {
+    font-size: 34px;
+    max-width: 520px;
+  }
+  .ref-hero-copy .ref-kicker {
+    font-size: 11px;
+  }
+  .ref-hero-copy .ref-hero-description {
+    font-size: 14px;
+    white-space: normal;
+  }
+  .ref-hero-copy .ref-malayalam {
+    font-size: 13px;
+    white-space: normal;
+  }
+  .ref-hero-copy .ref-subline {
+    font-size: 13px;
+    white-space: normal;
+  }
+  .ref-hero-buttons .button {
+    font-size: 14px;
+    min-height: 46px;
+  }
+  .ref-tradition,
+  .ref-booking-motto {
+    display: none;
+  }
+  .ref-booking {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin: 0 24px 22px;
+    width: calc(100% - 48px);
+    min-width: 0;
+    min-height: 0;
+    padding: 22px 25px;
+  }
+  .ref-booking h2 {
+    font-size: 25px;
+  }
+  .ref-booking .ref-book-sub {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .ref-form-grid {
+    gap: 14px 20px;
+  }
+  .ref-form-grid > label {
+    font-size: 14px;
+    gap: 6px;
+  }
+  .ref-form-grid input:not([type="checkbox"]):not([type="radio"]),
+  .ref-form-grid select {
+    height: 46px;
+    min-height: 46px;
+    font-size: 16px;
+    padding: 9px 12px;
+  }
+  .ref-proceed {
+    min-height: 47px;
+    margin-top: 16px;
+    font-size: 14px;
+  }
+  .ref-booking > small {
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  .ref-how {
+    height: auto;
+    padding: 20px 24px;
+    gap: 20px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .ref-how-title h2 {
+    font-size: 25px;
+  }
+  .ref-how-title p {
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  .ref-steps {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .ref-step {
+    padding: 0;
+    border: 0;
+    gap: 10px;
+  }
+  .ref-step h3 {
+    font-size: 13px;
+  }
+  .ref-step p {
+    font-size: 11px;
+  }
+  .ref-step .ref-circle {
+    width: 45px;
+    height: 45px;
+  }
+  .ref-commerce {
+    padding: 20px 24px;
+    grid-template-columns: 1fr;
+    gap: 27px;
+  }
+  .ref-section-heading h2,
+  .ref-services .ref-section-heading h2 {
+    font-size: 25px;
+  }
+  .ref-section-heading p {
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .ref-section-heading > a {
+    font-size: 12px;
+    gap: 6px;
+  }
+  .ref-product-grid {
+    gap: 12px;
+  }
+  .ref-product-photo {
+    height: 85px;
+  }
+  .ref-product-card h3 {
+    font-size: 12px;
+  }
+  .ref-product-card p {
+    font-size: 11px;
+    min-height: 43px;
+  }
+  .ref-product-card > div {
+    padding: 8px;
+  }
+  .ref-card-button {
+    height: 38px;
+    min-height: 38px !important;
+    font-size: 12px !important;
+  }
+  .ref-service {
+    min-height: 95px;
+    padding: 15px;
+    gap: 13px;
+  }
+  .ref-service .ref-circle {
+    width: 50px;
+    height: 50px;
+  }
+  .ref-service h3 {
+    font-size: 14px;
+  }
+  .ref-service p {
+    font-size: 13px;
+  }
+  .ref-payments {
+    display: block;
+  }
+  .ref-payment-card {
+    justify-content: space-between;
+  }
+  .ref-trust {
+    padding: 20px 24px;
+    gap: 20px;
+  }
+  .ref-trust-title {
+    width: 100%;
+  }
+  .ref-trust-title h2 {
+    font-size: 23px;
+  }
+  .ref-trust-title p {
+    font-size: 14px;
+  }
+  .ref-reasons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 100%;
+    flex: none;
+  }
+  .ref-reason {
+    gap: 12px;
+  }
+  .ref-reason h3 {
+    font-size: 13px;
+  }
+  .ref-reason p {
+    font-size: 12px;
+    max-width: 220px;
+  }
+  .ref-reason .ref-circle {
+    width: 44px;
+    height: 44px;
+  }
+  .ref-whatsapp-band {
+    padding: 12px;
+    gap: 12px;
+  }
+  .ref-whatsapp-band h3 {
+    white-space: normal;
+    font-size: 13px;
+  }
+  .ref-whatsapp-band p {
+    font-size: 11px;
+  }
+  .ref-chat-pill {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 7px 12px;
+  }
+  .ref-faq {
+    padding: 18px 24px;
+  }
+  .ref-faq-heading h2 {
+    font-size: 21px;
+  }
+  .ref-faq-items {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .ref-faq-items button {
+    font-size: 12px;
+    min-height: 48px;
+    padding: 8px 12px;
+  }
+  .ref-footer-main {
+    flex-wrap: wrap;
+    padding: 24px;
+    gap: 25px;
+  }
+  .ref-footer-logo {
+    width: 198px;
+    height: 42px;
+  }
+  .ref-footer-motto {
+    border: 0;
+    min-width: 220px;
+  }
+  .ref-footer-motto p {
+    font-size: 14px;
+  }
+  .ref-footer-motto > svg {
+    width: 50px;
+  }
+  .ref-footer-links {
+    width: 35%;
+    flex-grow: 1;
+  }
+  .ref-footer h3 {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  .ref-footer-links > div {
+    font-size: 13px;
+    grid-template-rows: repeat(4, 30px);
+  }
+  .ref-footer-contact {
+    width: 50%;
+  }
+  .ref-footer-contact > a,
+  .ref-footer-contact > p {
+    font-size: 13px;
+    line-height: 1.8;
+    gap: 10px;
+  }
+  .ref-footer-contact svg {
+    width: 14px;
+    height: 14px;
+  }
+  .ref-footer-bottom {
+    font-size: 11px;
+    padding: 12px 24px;
+    flex-wrap: wrap;
+  }
+  .ref-site-notice {
+    font-size: 11px;
+    padding: 10px 24px 90px;
+    text-align: center;
+  }
+  .ref-footer {
+    padding-bottom: 0;
+  }
+  .reference-site .page-heading h1 {
+    font-size: 2.6rem;
+  }
+  .reference-site .mobile-actions .button {
+    min-height: 48px;
+  }
+}
+@media (max-width: 520px) {
+  .ref-header {
+    padding: 0 13px;
+    gap: 10px;
+  }
+  .ref-logo {
+    width: 172px;
+    height: 39px;
+  }
+  .ref-header-actions {
+    gap: 3px;
+  }
+  .ref-header .language button {
+    padding: 5px 6px;
+    font-size: 10px;
+    min-width: 32px;
+  }
+  .ref-menu {
+    min-width: 35px;
+  }
+  .ref-hero {
+    background-position: 58% 0;
+    background-size: auto 370px;
+  }
+  .ref-hero:before {
+    height: 330px;
+    background: linear-gradient(
+      90deg,
+      #f8f5ecee 0%,
+      #f8f5ecda 50%,
+      #f8f5ec40 100%
+    );
+  }
+  .ref-hero-copy {
+    width: 100%;
+    padding: 24px 20px 28px;
+  }
+  .ref-hero h1 {
+    font-size: 31px;
+    line-height: 1.1;
+    max-width: 390px;
+    margin-bottom: 13px;
+  }
+  .ref-hero-copy .ref-kicker {
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    white-space: normal;
+  }
+  .ref-hero-copy .ref-hero-description {
+    font-size: 13px;
+    max-width: 350px;
+    line-height: 1.5;
+  }
+  .ref-hero-buttons {
+    gap: 10px;
+    margin: 17px 0;
+  }
+  .ref-hero-buttons .button {
+    font-size: 14px;
+    min-width: 0;
+    flex: 1;
+    padding: 11px 9px;
+    gap: 7px;
+  }
+  .ref-hero-buttons .button.outline {
+    font-size: 12px;
+    min-width: 0;
+  }
+  .ref-hero-copy .ref-malayalam {
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .ref-hero-copy .ref-subline {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .ref-booking {
+    margin: 0 15px 15px;
+    width: calc(100% - 30px);
+    padding: 20px 18px;
+  }
+  .ref-booking h2 {
+    font-size: 24px;
+  }
+  .ref-form-grid {
+    gap: 14px 12px;
+  }
+  .ref-form-grid > label {
+    font-size: 13px;
+  }
+  .ref-form-grid input:not([type="checkbox"]):not([type="radio"]),
+  .ref-form-grid select {
+    font-size: 14px;
+    padding: 9px;
+    min-height: 46px;
+  }
+  .ref-form-grid input[type="date"] {
+    font-size: 13px;
+  }
+  .ref-booking > small {
+    font-size: 10px;
+  }
+  .ref-how,
+  .ref-commerce,
+  .ref-trust,
+  .ref-faq {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .ref-steps {
+    gap: 19px 10px;
+  }
+  .ref-step {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .ref-step h3 {
+    font-size: 12px;
+    white-space: normal;
+  }
+  .ref-step p {
+    font-size: 10px;
+    white-space: normal;
+    line-height: 1.8;
+  }
+  .ref-step .ref-circle {
+    width: 35px;
+    height: 35px;
+  }
+  .ref-section-heading {
+    margin-bottom: 13px;
+  }
+  .ref-section-heading h2,
+  .ref-services .ref-section-heading h2 {
+    font-size: 24px;
+  }
+  .ref-section-heading > a {
+    font-size: 10px;
+    gap: 5px;
+  }
+  .ref-section-heading p {
+    font-size: 12px;
+  }
+  .ref-product-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .ref-product-photo {
+    height: 95px;
+  }
+  .ref-product-card h3 {
+    font-size: 13px;
+    white-space: normal;
+    line-height: 1.4;
+  }
+  .ref-product-card p {
+    font-size: 12px;
+    min-height: 52px;
+    line-height: 1.45;
+    margin: 5px 0;
+  }
+  .ref-product-card strong {
+    font-size: 13px;
+    margin: 7px 0;
+  }
+  .ref-card-button {
+    min-height: 43px !important;
+    height: 43px;
+    font-size: 12px !important;
+  }
+  .ref-services-grid {
+    grid-template-columns: 1fr;
+    gap: 11px;
+  }
+  .ref-service {
+    min-height: 90px;
+    padding: 15px;
+  }
+  .ref-service h3 {
+    font-size: 15px;
+  }
+  .ref-service p {
+    font-size: 14px;
+  }
+  .ref-payment-card {
+    display: block;
+    padding: 18px;
+  }
+  .ref-payment-card > strong {
+    max-width: none;
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+  .ref-payment-logos {
+    width: 220px;
+    height: 63px;
+    margin: 0 auto 20px;
+  }
+  .ref-delivery {
+    border-left: 0;
+    border-top: 1px solid #ddd8cd;
+    padding: 18px 12px 0;
+    max-width: none;
+    gap: 20px;
+  }
+  .ref-delivery > svg {
+    width: 40px;
+  }
+  .ref-delivery h3 {
+    font-size: 15px;
+  }
+  .ref-delivery p {
+    font-size: 14px;
+  }
+  .ref-reasons {
+    gap: 20px 12px;
+  }
+  .ref-reason {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .ref-reason h3 {
+    font-size: 12px;
+    white-space: normal;
+  }
+  .ref-reason p {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .ref-reason .ref-circle {
+    width: 35px;
+    height: 35px;
+  }
+  .ref-whatsapp-band {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px;
+  }
+  .ref-whatsapp-band > div {
+    flex: 1;
+  }
+  .ref-whatsapp-band h3 {
+    font-size: 14px;
+  }
+  .ref-whatsapp-band p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .ref-chat-pill {
+    margin: 0 0 0 auto;
+    min-height: 37px;
+    font-size: 12px;
+  }
+  .ref-faq-heading {
+    gap: 10px;
+  }
+  .ref-faq-heading h2 {
+    font-size: 20px;
+  }
+  .ref-faq-heading p {
+    font-size: 11px;
+  }
+  .ref-faq-heading > a {
+    font-size: 10px;
+    gap: 5px;
+  }
+  .ref-faq-items {
+    grid-template-columns: 1fr;
+  }
+  .ref-faq-items button {
+    font-size: 13px;
+    min-height: 50px;
+  }
+  .ref-footer-main {
+    padding: 25px 20px;
+    gap: 24px;
+  }
+  .ref-footer-brand {
+    width: 100%;
+  }
+  .ref-footer-motto {
+    display: none;
+  }
+  .ref-footer-links {
+    width: 100%;
+  }
+  .ref-footer-contact {
+    width: 100%;
+  }
+  .ref-footer-contact > a,
+  .ref-footer-contact > p {
+    font-size: 14px;
+    line-height: 2;
+  }
+  .ref-footer-links > div {
+    font-size: 14px;
+    grid-template-rows: repeat(4, 35px);
+  }
+  .ref-footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 15px 20px;
+    font-size: 12px;
+  }
+  .ref-site-notice {
+    padding: 12px 20px 95px;
+    gap: 8px;
+  }
+}
+html[lang="ml"] .reference-home h1 {
+  font-family: "Noto Sans Malayalam", sans-serif;
+  font-size: 30px;
+  line-height: 1.5;
+}
+html[lang="ml"] .reference-home h2 {
+  font-family: "Noto Sans Malayalam", sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+}
+html[lang="ml"] .ref-nav {
+  gap: 17px;
+}
+html[lang="ml"] .ref-nav a {
+  font-size: 11px;
+}
+html[lang="ml"] .ref-hero-copy .ref-kicker {
+  font-size: 10px;
+  letter-spacing: 0;
+}
+html[lang="ml"] .ref-hero-copy .ref-hero-description {
+  font-size: 12px;
+  white-space: normal;
+}
+html[lang="ml"] .ref-hero-copy .ref-malayalam {
+  font-size: 11px;
+}
+html[lang="ml"] .ref-hero-copy .ref-subline {
+  font-size: 11px;
+  white-space: normal;
+}
+html[lang="ml"] .ref-hero-buttons .button {
+  font-size: 12px;
+  min-width: 0;
+}
+html[lang="ml"] .ref-booking h2 {
+  font-size: 17px;
+}
+html[lang="ml"] .ref-step h3 {
+  font-size: 10px;
+  white-space: normal;
+}
+html[lang="ml"] .ref-step p {
+  display: none;
+}
+html[lang="ml"] .ref-product-card h3 {
+  white-space: normal;
+  line-height: 1.7;
+}
+html[lang="ml"] .ref-product-card p {
+  line-height: 1.65;
+  min-height: 50px;
+}
+html[lang="ml"] .ref-product-card strong {
+  line-height: 1.8;
+}
+html[lang="ml"] .ref-service h3 {
+  white-space: normal;
+  line-height: 1.65;
+}
+html[lang="ml"] .ref-service p {
+  line-height: 1.7;
+}
+html[lang="ml"] .ref-reason h3 {
+  white-space: normal;
+}
+html[lang="ml"] .ref-whatsapp-band h3 {
+  white-space: normal;
+}
+html[lang="ml"] .ref-faq-items button {
+  white-space: normal;
+  font-size: 9px;
+  line-height: 1.7;
+}
+html[lang="ml"] .ref-footer-links > div {
+  grid-template-rows: repeat(4, 19px);
+}
+html[lang="ml"] .ref-footer-main {
+  min-height: 110px;
+}
+@media (max-width: 850px) {
+  html[lang="ml"] .ref-header .language button {
+    font-size: 11px;
+  }
+  html[lang="ml"] .ref-nav.open a {
+    font-size: 15px;
+  }
+  html[lang="ml"] .reference-home h1 {
+    font-size: 29px;
+  }
+  html[lang="ml"] .reference-home h2 {
+    font-size: 22px;
+  }
+  html[lang="ml"] .ref-hero-copy .ref-hero-description {
+    font-size: 13px;
+  }
+  html[lang="ml"] .ref-hero-buttons .button {
+    font-size: 13px;
+  }
+  html[lang="ml"] .ref-product-card h3 {
+    font-size: 13px;
+  }
+  html[lang="ml"] .ref-faq-items button {
+    font-size: 12px;
+  }
+  html[lang="ml"] .ref-footer-links > div {
+    grid-template-rows: repeat(4, 35px);
+  }
+}
+@media print {
+  .ref-header,
+  .ref-footer,
+  .mobile-actions {
+    display: none !important;
+  }
+}
+/* Malayalam needs more vertical space than the English reference. */
+html[lang="ml"] .ref-hero {
+  height: 420px;
+}
+html[lang="ml"] .ref-hero-copy {
+  padding-top: 24px;
+  width: 40%;
+}
+html[lang="ml"] .ref-hero h1 {
+  font-size: 28px;
+  line-height: 1.6;
+}
+html[lang="ml"] .ref-hero-copy .ref-hero-description {
+  line-height: 1.85;
+}
+html[lang="ml"] .ref-hero-buttons {
+  margin: 14px 0;
+}
+html[lang="ml"] .ref-hero-copy .ref-malayalam,
+html[lang="ml"] .ref-hero-copy .ref-subline {
+  line-height: 1.8;
+}
+html[lang="ml"] .ref-how {
+  height: auto;
+  min-height: 77px;
+  padding-right: 3.3%;
+  gap: 25px;
+}
+html[lang="ml"] .ref-how-title {
+  width: 210px;
+  min-width: 210px;
+}
+html[lang="ml"] .ref-how-title p {
+  white-space: normal;
+}
+html[lang="ml"] .ref-steps {
+  justify-content: space-around;
+}
+html[lang="ml"] .ref-step {
+  flex-shrink: 1;
+  min-width: 0;
+}
+html[lang="ml"] .ref-trust-title {
+  width: 205px;
+  min-width: 205px;
+}
+html[lang="ml"] .ref-trust-title h2 {
+  white-space: normal;
+  font-size: 16px;
+}
+html[lang="ml"] .ref-reason h3 {
+  line-height: 1.7;
+}
+.ref-commerce > * {
+  min-width: 0;
+}
+.ref-faq-items button {
+  white-space: normal;
+}
+.ref-trust-title h2 {
+  white-space: normal;
+}
+.ref-how {
+  overflow: hidden;
+}
+@media (min-width: 1101px) and (max-width: 1300px) {
+  .ref-step {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  .ref-step .ref-circle {
+    width: 30px;
+    height: 30px;
+  }
+  .ref-how-title {
+    min-width: 135px;
+  }
+  .ref-step h3 {
+    font-size: 8px;
+  }
+  .ref-step p {
+    font-size: 8px;
+  }
+  .ref-steps {
+    gap: 0;
+  }
+}
+@media (max-width: 850px) {
+  html[lang="ml"] .ref-hero {
+    height: auto;
+  }
+  html[lang="ml"] .ref-hero-copy {
+    width: 100%;
+    max-width: 640px;
+    padding: 24px;
+  }
+  html[lang="ml"] .ref-hero h1 {
+    font-size: 26px;
+  }
+  html[lang="ml"] .ref-how {
+    padding: 20px 24px;
+    gap: 18px;
+  }
+  html[lang="ml"] .ref-how-title {
+    width: auto;
+    min-width: 0;
+  }
+  html[lang="ml"] .ref-trust-title {
+    width: 100%;
+    min-width: 0;
+  }
+  html[lang="ml"] .ref-trust-title h2 {
+    font-size: 22px;
+  }
+  html[lang="ml"] .ref-how-title h2 {
+    font-size: 22px;
+  }
+  html[lang="ml"] .ref-step h3 {
+    font-size: 12px;
+  }
+  html[lang="ml"] .ref-hero-buttons .button {
+    min-width: 0;
+  }
+}
+/* Shared COCOTRIBE page system and comfortable mobile controls. */
+.ref-brand-lockup{display:flex;align-items:center;gap:5px;color:#193d25;width:207px}
+.ref-brand-palm{width:36px;height:47px;flex-shrink:0}
+.ref-brand-lockup strong{display:block;font:700 26px/1.1 Georgia,serif;letter-spacing:-.6px}
+.ref-brand-lockup small{display:block;font-size:5.7px;letter-spacing:.1px;white-space:nowrap;margin-top:3px}
+.ref-footer .ref-brand-lockup{color:#fff9e8}
+.ref-footer .ref-brand-palm{height:42px}
+.reference-site .page-space{padding-top:36px;padding-bottom:56px;min-height:65vh}
+.reference-site .page-heading{max-width:none;padding:28px 32px;margin-bottom:30px;background:#f4efe4;border:1px solid #e8deca;border-left:4px solid #b8873a;border-radius:12px}
+.reference-site .page-heading h1,.reference-site .detail-grid h1{font-family:Georgia,'Noto Sans Malayalam',serif;font-size:40px;line-height:1.25;color:#203e28;letter-spacing:-.6px}
+.reference-site .page-heading p{max-width:720px}
+.reference-site .panel,.reference-site .product-card,.reference-site .service-card,.reference-site .map-placeholder{border:1px solid #e8e0d4;border-radius:12px;background:#fffdf9;box-shadow:0 4px 16px #49341608}
+.reference-site .page-space h2{font-family:Georgia,'Noto Sans Malayalam',serif;color:#243c29}
+.reference-site .page-space .button{border-radius:7px}
+.reference-site .page-space .eyebrow{color:#795824}
+.reference-site .feature-panel{background:#f1ecdf;border-radius:12px}
+.reference-site .field input,.reference-site .field select,.reference-site .field textarea{border-color:#d8d4c9;border-radius:7px;background:#fff}
+html[lang="ml"] .ref-step p{display:block}
+@media(max-width:850px){
+ .ref-header{padding:10px 16px;gap:8px;min-height:72px}
+ .ref-brand-lockup{width:168px;gap:3px}.ref-brand-lockup strong{font-size:21px}.ref-brand-lockup small{font-size:4.7px}.ref-brand-palm{width:29px;height:39px}
+ .ref-header-actions{gap:6px}.ref-header .language button{min-height:44px;padding:5px 8px}.ref-menu{min-width:44px;min-height:44px}
+ .ref-hero-copy,html[lang="ml"] .ref-hero-copy{padding:28px 20px;width:100%;max-width:none}
+ .ref-hero h1{font-size:34px;line-height:1.13;max-width:560px}
+ .ref-hero-copy .ref-hero-description,html[lang="ml"] .ref-hero-copy .ref-hero-description{font-size:16px;line-height:1.65;white-space:normal}
+ .ref-hero-copy .ref-malayalam,.ref-hero-copy .ref-subline,html[lang="ml"] .ref-hero-copy .ref-malayalam,html[lang="ml"] .ref-hero-copy .ref-subline{font-size:14px;line-height:1.7;white-space:normal}
+ .ref-hero-buttons .button,html[lang="ml"] .ref-hero-buttons .button{min-height:48px;font-size:15px;padding:10px 14px}
+ .ref-booking{padding:24px 20px;margin:0 16px 24px;width:auto;max-width:none}
+ .ref-booking h2,html[lang="ml"] .ref-booking h2{font-size:24px;line-height:1.5}
+ .ref-book-sub{font-size:14px}.ref-form-grid{gap:16px}.ref-form-grid label{font-size:15px;line-height:1.6}
+ .ref-form-grid input,.ref-form-grid select{font-size:16px;min-height:48px;width:100%;min-width:0;padding:10px}
+ .ref-proceed{min-height:50px;font-size:16px}.ref-booking small{font-size:12px;line-height:1.6}
+ .ref-how,html[lang="ml"] .ref-how{padding:24px 20px}.ref-steps{gap:20px}.ref-step{align-items:flex-start;padding:0;min-width:0}
+ .ref-step h3,html[lang="ml"] .ref-step h3{font-size:14px;line-height:1.6;white-space:normal}.ref-step p{font-size:13px;line-height:1.6}
+ .ref-section-heading{gap:12px;flex-wrap:wrap}.ref-section-heading h2,html[lang="ml"] .reference-home .ref-section-heading h2{font-size:25px;line-height:1.5}
+ .ref-section-heading p,.ref-how-title p,.ref-trust-title p,.ref-faq-heading p{font-size:14px;line-height:1.6;white-space:normal}
+ .ref-section-heading>a,.ref-faq-heading>a{font-size:14px;min-height:44px}
+ .ref-product-card h3,html[lang="ml"] .ref-product-card h3{font-size:17px;line-height:1.6;white-space:normal}
+ .ref-product-card p,html[lang="ml"] .ref-product-card p{font-size:15px;line-height:1.7;min-height:0}
+ .ref-product-card strong{font-size:16px;margin:8px 0}.ref-card-button{min-height:46px;font-size:15px}
+ .ref-service h3,html[lang="ml"] .ref-service h3,.ref-reason h3{font-size:16px;line-height:1.6}.ref-service p,.ref-reason p{font-size:14px;line-height:1.65}
+ .ref-payment-card strong,.ref-delivery h3{font-size:16px}.ref-delivery p{font-size:14px}
+ .ref-whatsapp-band{padding:20px;flex-wrap:wrap}.ref-whatsapp-band h3{font-size:17px;white-space:normal;line-height:1.5}.ref-whatsapp-band p{font-size:14px;line-height:1.6}.ref-chat-pill{min-height:44px;font-size:14px}
+ .ref-faq-heading{flex-wrap:wrap;gap:8px}.ref-faq-items button,html[lang="ml"] .ref-faq-items button{font-size:15px;min-height:56px;padding:12px;line-height:1.7}
+ .ref-footer-links>div,html[lang="ml"] .ref-footer-links>div{grid-template-rows:repeat(4,44px);font-size:14px}.ref-footer-links a{display:flex;align-items:center}.ref-footer h3{font-size:16px;margin-bottom:8px}
+ .ref-footer-contact>a,.ref-footer-contact>p{font-size:14px;line-height:1.7;min-height:44px}.ref-footer-bottom,.ref-site-notice{font-size:12px;line-height:1.7}
+ .reference-site .page-space{padding-top:24px;padding-bottom:36px}.reference-site .page-heading{padding:22px 20px;margin-bottom:24px}.reference-site .page-heading h1,.reference-site .detail-grid h1{font-size:30px;line-height:1.4}
+ .reference-site .page-space .button{min-height:48px;font-size:16px}.reference-site .panel{padding:22px 18px}.reference-site .field input,.reference-site .field select,.reference-site .field textarea{font-size:16px;min-height:48px;min-width:0}
+ .reference-site .detail-grid,.reference-site .contact-grid,.reference-site .booking-grid{grid-template-columns:1fr;gap:24px}.reference-site .detail-grid>img{height:280px;width:100%;object-fit:cover}
+ .mobile-actions{padding-bottom:max(10px,env(safe-area-inset-bottom));gap:10px}.mobile-actions .button{min-height:48px;font-size:15px}
+}
+@media(max-width:520px){
+ .ref-header{flex-wrap:wrap}.ref-header-actions{margin-left:auto}.ref-header .language{padding:0}.ref-header .language button{font-size:11px;padding:5px 6px}
+ .ref-form-grid,.reference-site .form-grid{grid-template-columns:1fr}.ref-span-two{grid-column:auto}
+ .ref-product-grid{grid-template-columns:1fr}.ref-product-photo{height:auto;aspect-ratio:2.6}.ref-product-card>div{padding:14px}.ref-product-card p{margin:6px 0}
+ .ref-reasons{grid-template-columns:1fr;gap:18px}.ref-hero-buttons{display:grid;grid-template-columns:1fr}.ref-steps{grid-template-columns:1fr 1fr}
+ .reference-site .catalog-grid{grid-template-columns:1fr}.reference-site .button-row{flex-wrap:wrap}.reference-site .button-row>.button{width:100%}
+ .ref-commerce{padding:24px 16px}.ref-trust,.ref-faq{padding:24px 16px}
+}
+@media(max-width:370px){.ref-brand-lockup{width:148px}.ref-brand-lockup strong{font-size:18px}.ref-brand-lockup small{font-size:4.2px}.ref-steps{grid-template-columns:1fr}}

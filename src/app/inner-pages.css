@@ -1,0 +1,40 @@
+/* Customer pages share the approved homepage's visual language. */
+.coco-inner{background:#fcfaf5;color:#17231b;font-family:'DM Sans','Noto Sans Malayalam',Arial,sans-serif;--serif:Georgia,'Noto Sans Malayalam',serif;--muted:#596057;--line:#e6dfd2}
+.coco-inner .wrap{width:93.4%;max-width:1440px;margin-inline:auto}
+.coco-inner .page-space{padding:24px 0 48px}
+.coco-inner .page-heading{position:relative;isolation:isolate;overflow:hidden;max-width:none;min-height:210px;padding:30px 36px;margin:0 0 28px;border:1px solid #e8dfcc;border-radius:10px;background:#f5f0e6;display:flex;flex-direction:column;justify-content:center}
+.coco-inner .page-heading:after{content:'';position:absolute;inset:0 0 0 45%;z-index:-1;background:linear-gradient(90deg,#f5f0e6,transparent 55%),url('/images/reference-hero.jpg') 63% center/cover no-repeat;opacity:.85}
+.coco-inner .page-heading>*{max-width:59%}
+.coco-inner .inner-breadcrumb{font-size:12px;color:#73572f;margin-bottom:16px;line-height:1.6}
+.coco-inner .inner-breadcrumb span{margin:0 8px;color:#9b835e}
+.coco-inner .page-heading .eyebrow{font:600 11px/1.6 'DM Sans','Noto Sans Malayalam',sans-serif;letter-spacing:1.3px;color:#795422;margin:0 0 6px}
+.coco-inner h1,.coco-inner h2,.coco-inner h3{font-family:Georgia,'Noto Sans Malayalam',serif;color:#1c3523;letter-spacing:-.025em}
+.coco-inner .page-heading h1,.coco-inner .detail-grid h1{font-size:36px;line-height:1.25;margin:0 0 10px}
+.coco-inner h2{font-size:25px;line-height:1.3;margin-bottom:12px}
+.coco-inner h3{font-size:20px;line-height:1.4}
+.coco-inner p{font-size:15px;line-height:1.75;margin-bottom:12px;color:#4b524b}
+.coco-inner button,.coco-inner input,.coco-inner select,.coco-inner textarea{font-family:inherit}
+.coco-inner .button,.coco-inner .btn-primary,.coco-inner .btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 18px;border:1px solid #214b2c;border-radius:6px;background:#214b2c;color:#fff;font-size:14px;font-weight:600;line-height:1.5}
+.coco-inner .button.outline,.coco-inner .btn-outline{background:transparent;color:#214b2c}
+.coco-inner :is(a,button,input,select,textarea):focus-visible{outline:3px solid #b9893f;outline-offset:3px}
+.coco-inner .catalog-grid{max-width:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;align-items:start}
+.coco-inner .product-card{background:#fffdf9;padding:5px;border:1px solid #e7e0d5;border-radius:9px;box-shadow:0 3px 9px #5339180c;overflow:hidden}
+.coco-inner .product-img{height:200px;width:100%;object-fit:cover;border-radius:6px}
+.coco-inner .product-info{padding:16px}
+.coco-inner .product-info h3{font-size:21px;margin-bottom:6px}
+.coco-inner .product-info .price{font-weight:700;color:#214b2c;margin:12px 0}
+.coco-inner .panel,.coco-inner .booking-aside,.coco-inner .contact-info,.coco-inner .legal>section{background:#fffdf9;border:1px solid #e7e0d5;border-radius:10px;box-shadow:0 3px 12px #53391808;padding:26px}
+.coco-inner .booking-aside{padding:0;overflow:hidden}.coco-inner .booking-aside>img{height:190px;object-fit:cover}.coco-inner .booking-aside>div{padding:22px}
+.coco-inner .booking-grid{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px}
+.coco-inner .progress{gap:24px;margin-bottom:24px}.coco-inner .progress li span{background:#faecd1;border-color:#ecdbb8;color:#6b4b1c}.coco-inner .progress li.active span{background:#214b2c;border-color:#214b2c;color:white}
+.coco-inner .field{font-size:14px;gap:6px;margin-bottom:17px}.coco-inner .field input,.coco-inner .field select,.coco-inner .field textarea{background:#fff;border:1px solid #d9d7ce;border-radius:6px;min-height:46px;font-size:16px}
+.coco-inner .detail-grid{gap:32px;align-items:start;margin-top:24px}.coco-inner .detail-grid>img{height:410px;object-fit:cover;border-radius:10px}.coco-inner .detail-grid>div{background:#fffdf9;border:1px solid #e7e0d5;padding:26px;border-radius:10px}
+.coco-inner .service-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:26px}
+.coco-inner .service-card{display:flex;align-items:center;gap:18px;padding:23px;border:1px solid #e7e0d5;border-radius:9px;background:#fffdf9;box-shadow:0 3px 9px #53391808}.coco-inner .service-card>svg:first-child{width:54px;height:54px;padding:12px;border-radius:50%;background:#faecd1;color:#36542c;flex-shrink:0}.coco-inner .service-card>div{flex:1}.coco-inner .service-card h3{font-size:19px;margin-bottom:5px}.coco-inner .service-card p{margin:0}
+.coco-inner .feature-panel{margin-bottom:24px;background:#f2eddf;border:1px solid #e7dfcc;border-radius:10px}.coco-inner .feature-panel>div{padding:28px}.coco-inner .feature-panel img{max-height:260px;object-fit:cover}
+.coco-inner .contact-grid{gap:24px;grid-template-columns:1fr 1.1fr}.coco-inner .contact-info>a,.coco-inner .contact-info>p{font-size:15px;overflow-wrap:anywhere}.coco-inner .map-placeholder{padding:22px;background:#f5f0e4;box-shadow:none}
+.coco-inner .faq-list{display:grid;grid-template-columns:1fr;gap:12px;max-width:960px;margin:auto}.coco-inner .faq-item{background:#fffdf9;border:1px solid #e7e0d5;border-radius:8px;padding:0;box-shadow:0 3px 9px #53391806}.coco-inner .faq-question{display:flex;justify-content:space-between;align-items:center;width:100%;gap:18px;text-align:left;padding:20px;background:none;color:#203e28;font-size:16px;font-weight:600;line-height:1.6}.coco-inner .faq-answer{padding:0 20px 20px;font-size:15px;line-height:1.8;color:#4b524b}.coco-inner .faq-plus{color:#86642c;flex-shrink:0}
+.coco-inner .legal>section{margin:18px 0}.coco-inner .legal>section p{margin:0}.coco-inner .notice{background:#f5eedf;border-color:#e4d9c4}.coco-inner .notice.error{background:#fff0e9;color:#872f25}.coco-inner .notice.success{background:#edf5e7;color:#255339}
+@media(max-width:850px){.coco-inner .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.coco-inner .booking-grid,.coco-inner .contact-grid,.coco-inner .detail-grid{grid-template-columns:1fr}.coco-inner .page-heading{padding:24px;min-height:195px}.coco-inner .page-heading h1{font-size:30px}.coco-inner .page-heading>*{max-width:75%}.coco-inner .page-heading:after{opacity:.4}.coco-inner .service-card{padding:18px;gap:12px}.coco-inner .detail-grid>img{height:300px}}
+@media(max-width:520px){.coco-inner .wrap{width:calc(100% - 32px)}.coco-inner .page-space{padding-top:16px}.coco-inner .page-heading{padding:22px 18px;min-height:210px}.coco-inner .page-heading>*{max-width:100%}.coco-inner .page-heading:after{inset:0;opacity:.12}.coco-inner .page-heading h1,.coco-inner .detail-grid h1{font-size:28px;line-height:1.4}.coco-inner .catalog-grid,.coco-inner .service-grid,.coco-inner .form-grid{grid-template-columns:1fr}.coco-inner .product-img{height:195px}.coco-inner .panel,.coco-inner .contact-info,.coco-inner .detail-grid>div,.coco-inner .legal>section{padding:20px}.coco-inner .feature-panel{grid-template-columns:1fr}.coco-inner .feature-panel>div{padding:22px}.coco-inner .feature-panel img{height:180px}.coco-inner .progress{gap:12px;flex-wrap:wrap}.coco-inner .progress li{font-size:12px;gap:6px}.coco-inner .button,.coco-inner .btn-primary,.coco-inner .btn-outline{min-height:48px;font-size:15px}.coco-inner .faq-question{padding:17px;font-size:15px}.coco-inner .detail-grid>img{height:250px}}
+@media print{.coco-inner .page-heading:after,.inner-breadcrumb{display:none}.coco-inner .page-heading{background:none;min-height:0;border:0}}

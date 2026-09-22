@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUND_REQUIRED
+  REFUNDED
+}
+enum PaymentMethod {
+  RAZORPAY
+  DELIVERY
+}
+model Product {
+  id String @id @default(cuid())
+  slug String @unique
+  nameEn String
+  nameMl String
+  descriptionEn String
+  descriptionMl String
+  price Int
+  image String
+  active Boolean @default(true)
+  stock Int @default(0)
+  orders Order[]
+  createdAt DateTime @default(now())
+}
+model TimeSlot {
+  id String @id @default(cuid())
+  label String
+  startMinute Int
+  active Boolean @default(true)
+  capacity Int @default(50)
+  orders Order[]
+}
+model Order {
+  id String @id @default(cuid())
+  bookingId String @unique
+  tokenHash String @unique
+  requestKey String @unique
+  name String
+  phone String
+  productId String
+  product Product @relation(fields:[productId],references:[id])
+  productNameEn String
+  productNameMl String
+  quantity Int
+  unitPrice Int
+  total Int
+  date String
+  slotId String
+  slot TimeSlot @relation(fields:[slotId],references:[id])
+  slotLabel String
+  notes String @default("")
+  language String @default("en")
+  method PaymentMethod
+  paymentStatus PaymentStatus @default(PENDING)
+  status OrderStatus @default(PENDING)
+  razorpayOrderId String? @unique
+  razorpayPaymentId String? @unique
+  reservedUntil DateTime?
+  stockReleased Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([date,status])
+  @@index([paymentStatus])
+}
+model Admin {
+  id String @id @default(cuid())
+  email String @unique
+  passwordHash String
+  sessionVersion Int @default(0)
+}
+model Faq {
+  id String @id @default(cuid())
+  questionEn String
+  questionMl String
+  answerEn String
+  answerMl String
+  position Int @default(0)
+  active Boolean @default(true)
+}
+model Settings {
+  id String @id @default("main")
+  phone String
+  whatsapp String
+  email String @default("")
+  addressEn String
+  addressMl String
+  hoursEn String
+  hoursMl String
+  heroEn String
+  heroMl String
+  aboutEn String
+  aboutMl String
+  leadHours Int @default(2)
+  maxDays Int @default(90)
+  deliveryEnabled Boolean @default(true)
+}
+model ContactMessage {
+  id String @id @default(cuid())
+  name String
+  phone String
+  message String
+  createdAt DateTime @default(now())
+}
+model RateLimit {
+  key String @id
+  count Int @default(1)
+  resetAt DateTime
+}
+model AuditLog {
+  id String @id @default(cuid())
+  adminId String
+  action String
+  entityId String
+  createdAt DateTime @default(now())
+}
