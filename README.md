@@ -168,3 +168,6 @@ Brand visuals are AI-generated illustrative product photography, not documentati
 ## Reference design revision
 
 The user selected COCOTRIBE as the final name. The homepage reproduces the supplied reference’s compact layout, wording, inline booking, four product/enquiry cards, services, payment artwork and footer. Cropped reference artwork is displayed as CSS image regions; all navigation, text, forms and booking actions are real components. Email and address are transcribed from the user-supplied reference and must be confirmed before launch. The separately generated hero is a visual reconstruction rather than the original photograph. The reference’s ₹38 bulk price is sample enquiry copy, not a checkout price.
+
+### Tamil and Hindi
+The customer interface now supports English, Malayalam, Tamil and Hindi. The header selector remembers the selected language on this device. Tamil/Hindi translations live in `src/lib/translations.ts`; dynamic booking messages are handled in `src/lib/translate.ts`. Existing seeded products, FAQs and website content are translated. Custom English content entered later by an administrator falls back to English until its translation is added to the dictionary. Admin management remains in English. No database migration is required for this update.

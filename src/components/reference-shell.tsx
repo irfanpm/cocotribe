@@ -58,14 +58,15 @@ export function Shell({
           ))}
         </nav>
         <div className="ref-header-actions">
-          <div className="language" aria-label="Language / ഭാഷ">
-            <button aria-pressed={lang === "en"} onClick={() => setLang("en")}>
-              EN
-            </button>
-            <button aria-pressed={lang === "ml"} onClick={() => setLang("ml")}>
-              മലയാളം
-            </button>
-          </div>
+          <label className="language coco-language">
+            <span className="sr-only">{t("Language", "ഭാഷ")}</span>
+            <select aria-label={t("Language", "ഭാഷ")} value={lang} onChange={e => setLang(e.target.value as "en" | "ml" | "ta" | "hi")}>
+              <option value="en">English</option>
+              <option value="ml">മലയാളം</option>
+              <option value="ta">தமிழ்</option>
+              <option value="hi">हिन्दी</option>
+            </select>
+          </label>
           <Link className="ref-gold-button" href="/book">
             {t("Book Now", "ബുക്ക് ചെയ്യാം")}
           </Link>

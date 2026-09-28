@@ -3,7 +3,7 @@ import Link from "next/link";
 import { MessageCircle, ArrowUpRight, Minus, Plus, Leaf } from "lucide-react";
 import { useLanguage } from "./language";
 export function money(value: number, lang = "en") {
-  return new Intl.NumberFormat(lang === "ml" ? "ml-IN" : "en-IN", {
+  return new Intl.NumberFormat(`${lang}-IN`, {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: value % 100 ? 2 : 0,

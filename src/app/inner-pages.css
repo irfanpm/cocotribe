@@ -38,3 +38,23 @@
 @media(max-width:850px){.coco-inner .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.coco-inner .booking-grid,.coco-inner .contact-grid,.coco-inner .detail-grid{grid-template-columns:1fr}.coco-inner .page-heading{padding:24px;min-height:195px}.coco-inner .page-heading h1{font-size:30px}.coco-inner .page-heading>*{max-width:75%}.coco-inner .page-heading:after{opacity:.4}.coco-inner .service-card{padding:18px;gap:12px}.coco-inner .detail-grid>img{height:300px}}
 @media(max-width:520px){.coco-inner .wrap{width:calc(100% - 32px)}.coco-inner .page-space{padding-top:16px}.coco-inner .page-heading{padding:22px 18px;min-height:210px}.coco-inner .page-heading>*{max-width:100%}.coco-inner .page-heading:after{inset:0;opacity:.12}.coco-inner .page-heading h1,.coco-inner .detail-grid h1{font-size:28px;line-height:1.4}.coco-inner .catalog-grid,.coco-inner .service-grid,.coco-inner .form-grid{grid-template-columns:1fr}.coco-inner .product-img{height:195px}.coco-inner .panel,.coco-inner .contact-info,.coco-inner .detail-grid>div,.coco-inner .legal>section{padding:20px}.coco-inner .feature-panel{grid-template-columns:1fr}.coco-inner .feature-panel>div{padding:22px}.coco-inner .feature-panel img{height:180px}.coco-inner .progress{gap:12px;flex-wrap:wrap}.coco-inner .progress li{font-size:12px;gap:6px}.coco-inner .button,.coco-inner .btn-primary,.coco-inner .btn-outline{min-height:48px;font-size:15px}.coco-inner .faq-question{padding:17px;font-size:15px}.coco-inner .detail-grid>img{height:250px}}
 @media print{.coco-inner .page-heading:after,.inner-breadcrumb{display:none}.coco-inner .page-heading{background:none;min-height:0;border:0}}
+/* Four-language selector and longer Tamil/Hindi text. */
+.reference-site .coco-language{padding:0;border:1px solid #e6dfd2;border-radius:22px;overflow:hidden;flex-shrink:0}
+.reference-site .coco-language select{font:14px/1.5 'DM Sans','Noto Sans Malayalam',Arial,sans-serif;min-height:44px;width:112px;padding:8px 24px 8px 12px;border:0;border-radius:22px;background:#f8f5ed;color:#214b2c;cursor:pointer}
+html:is([lang="ta"],[lang="hi"]) .ref-hero{height:auto;min-height:450px}
+html:is([lang="ta"],[lang="hi"]) .ref-hero h1{font-size:28px;line-height:1.6}
+html:is([lang="ta"],[lang="hi"]) .ref-hero-copy{width:40%;padding-bottom:24px}
+html:is([lang="ta"],[lang="hi"]) .ref-hero-copy p{white-space:normal;line-height:1.8}
+html:is([lang="ta"],[lang="hi"]) .ref-hero-buttons{flex-wrap:wrap}
+html:is([lang="ta"],[lang="hi"]) .ref-booking h2{font-size:19px;line-height:1.6}
+html:is([lang="ta"],[lang="hi"]) .ref-how{height:auto;min-height:100px;padding-right:3.3%;gap:16px}
+html:is([lang="ta"],[lang="hi"]) .ref-how-title{min-width:160px}
+html:is([lang="ta"],[lang="hi"]) .ref-step{min-width:0;flex-shrink:1}
+html:is([lang="ta"],[lang="hi"]) :is(.ref-step h3,.ref-step p,.ref-product-card h3,.ref-service h3,.ref-reason h3,.ref-whatsapp-band h3,.ref-how-title p){white-space:normal;line-height:1.7}
+html:is([lang="ta"],[lang="hi"]) .ref-product-card p{min-height:65px;line-height:1.8}
+html:is([lang="ta"],[lang="hi"]) .ref-trust{flex-wrap:wrap}
+html:is([lang="ta"],[lang="hi"]) .ref-footer-links>div{grid-template-rows:repeat(4,minmax(24px,auto))}
+html:is([lang="ta"],[lang="hi"]) .ref-brand-lockup small{white-space:normal;line-height:1.7}
+@media(max-width:850px){html:is([lang="ta"],[lang="hi"]) .ref-hero-copy{width:100%}html:is([lang="ta"],[lang="hi"]) .ref-hero h1{font-size:26px}html:is([lang="ta"],[lang="hi"]) .ref-booking h2{font-size:22px}html:is([lang="ta"],[lang="hi"]) .ref-footer-links>div{grid-template-rows:repeat(4,minmax(44px,auto))}.reference-site .coco-language select{width:104px;font-size:13px}.ref-header-actions{flex-shrink:0}}
+@media(min-width:851px) and (max-width:1250px){html:is([lang="ta"],[lang="hi"]) .ref-header .ref-gold-button{display:none}html:is([lang="ta"],[lang="hi"]) .ref-header{gap:12px;padding-inline:3%}html:is([lang="ta"],[lang="hi"]) .ref-nav{gap:12px;flex:1;justify-content:center}}
+@media(min-width:1251px){html:is([lang="ta"],[lang="hi"]) .ref-header{padding-inline:3%;gap:18px}html:is([lang="ta"],[lang="hi"]) .ref-nav{gap:18px}html:is([lang="ta"],[lang="hi"]) .ref-gold-button{max-width:160px;font-size:13px;line-height:1.5;white-space:normal}}

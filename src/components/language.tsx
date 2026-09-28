@@ -6,7 +6,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-type Locale = "en" | "ml";
+import { translate, type Locale } from "@/lib/translate";
+export type { Locale };
 const Context = createContext<{
   lang: Locale;
   setLang: (v: Locale) => void;
@@ -16,7 +17,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLanguage] = useState<Locale>("en");
   useEffect(() => {
     const value = localStorage.getItem("koko-language");
-    if (value === "ml") setLanguage("ml");
+    if (value === "ml" || value === "ta" || value === "hi") setLanguage(value);
   }, []);
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -27,7 +28,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }
   return (
     <Context.Provider
-      value={{ lang, setLang, t: (en, ml) => (lang === "ml" ? ml : en) }}
+      value={{ lang, setLang, t: (en, ml) => translate(en, ml, lang) }}
     >
       {children}
     </Context.Provider>
