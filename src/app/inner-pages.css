@@ -58,3 +58,39 @@ html:is([lang="ta"],[lang="hi"]) .ref-brand-lockup small{white-space:normal;line
 @media(max-width:850px){html:is([lang="ta"],[lang="hi"]) .ref-hero-copy{width:100%}html:is([lang="ta"],[lang="hi"]) .ref-hero h1{font-size:26px}html:is([lang="ta"],[lang="hi"]) .ref-booking h2{font-size:22px}html:is([lang="ta"],[lang="hi"]) .ref-footer-links>div{grid-template-rows:repeat(4,minmax(44px,auto))}.reference-site .coco-language select{width:104px;font-size:13px}.ref-header-actions{flex-shrink:0}}
 @media(min-width:851px) and (max-width:1250px){html:is([lang="ta"],[lang="hi"]) .ref-header .ref-gold-button{display:none}html:is([lang="ta"],[lang="hi"]) .ref-header{gap:12px;padding-inline:3%}html:is([lang="ta"],[lang="hi"]) .ref-nav{gap:12px;flex:1;justify-content:center}}
 @media(min-width:1251px){html:is([lang="ta"],[lang="hi"]) .ref-header{padding-inline:3%;gap:18px}html:is([lang="ta"],[lang="hi"]) .ref-nav{gap:18px}html:is([lang="ta"],[lang="hi"]) .ref-gold-button{max-width:160px;font-size:13px;line-height:1.5;white-space:normal}}
+/* Stable mobile header: logo, language selector and menu share one row. */
+@media(max-width:1100px){
+ .reference-site .ref-header{display:grid;grid-template-columns:minmax(0,1fr) auto;height:auto;min-height:72px;padding:10px 12px;gap:8px;align-items:center;flex-wrap:nowrap}
+ .reference-site .ref-header>a{min-width:0;width:fit-content;max-width:100%}
+ .reference-site .ref-header .ref-brand-lockup{width:100%;max-width:190px;gap:4px}
+ .reference-site .ref-header .ref-brand-lockup>span{min-width:0}
+ .reference-site .ref-header .ref-brand-lockup strong{font-size:clamp(16px,4.8vw,24px);letter-spacing:-.6px;white-space:nowrap}
+ .reference-site .ref-header .ref-brand-lockup small{font-size:5px;line-height:1.5;white-space:normal}
+ .reference-site .ref-header .ref-brand-palm{width:25px;height:34px}
+ .reference-site .ref-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0;min-width:0}
+ .reference-site .ref-header .coco-language{display:block;margin:0;height:44px;border-radius:8px;position:relative;overflow:hidden}
+ .reference-site .ref-header .coco-language select{display:block;width:100px;max-width:100px;height:42px;min-height:42px;line-height:1.5;padding:7px 18px 7px 9px;border-radius:7px;font-size:13px}
+ .reference-site .ref-header .ref-gold-button{display:none}
+ .reference-site .ref-header .ref-menu{display:flex;align-items:center;justify-content:center;min-width:44px;width:44px;height:44px;padding:8px;border:1px solid #e6dfd2;border-radius:8px;background:#f8f5ed;color:#214b2c}
+ .reference-site .ref-header .ref-nav{display:none}
+ .reference-site .ref-header .ref-nav.open{display:flex;position:absolute;top:100%;left:0;right:0;max-height:calc(100dvh - 145px);overflow-y:auto;flex-direction:column;align-items:stretch;gap:0;margin:0;padding:12px 20px;background:#fffdf8;box-shadow:0 8px 16px #14241920;z-index:50}
+ .reference-site .ref-header .ref-nav.open a{font-size:16px;line-height:1.7;white-space:normal;min-height:48px;padding:10px 0}
+ .reference-site .ref-header .ref-nav a[aria-current="page"]:after{display:none}
+}
+@media(max-width:370px){.reference-site .ref-header .ref-brand-lockup small{display:none}.reference-site .ref-header .ref-brand-palm{width:21px;height:29px}.reference-site .ref-header .coco-language select{width:94px;max-width:94px}.reference-site .ref-header{gap:5px;padding-inline:10px}}
+@media(max-width:850px){
+ .reference-site :is(.ref-commerce,.ref-how,.ref-trust,.ref-faq,.ref-footer-main,.booking-grid,.contact-grid,.detail-grid)>*{min-width:0}
+ .reference-site .ref-how-title,.reference-site .ref-trust-title{min-width:0;max-width:100%}
+ .reference-site .ref-hero-buttons .button{white-space:normal;text-align:center}
+ .reference-site .mobile-actions{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;width:100%;padding:10px 12px max(10px,env(safe-area-inset-bottom));box-sizing:border-box}
+ .reference-site .mobile-actions .button{min-width:0;white-space:normal;text-align:center;line-height:1.5;padding:9px 8px;font-size:14px}
+ .reference-site .ref-footer{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+ .reference-site .ref-footer-contact{overflow-wrap:anywhere}
+ .reference-site .ref-footer-bottom>div{flex-wrap:wrap}
+ .reference-site .ref-section-heading>a{white-space:normal}
+ .reference-site .coco-inner :is(input,select,textarea){max-width:100%;min-width:0}
+ .reference-site .coco-inner .summary-list>div{min-width:0;overflow-wrap:anywhere}
+}
+@media(max-width:850px){.reference-site .ref-step>div{min-width:0;overflow-wrap:anywhere}.reference-site .ref-step .ref-circle{flex-shrink:0}.reference-site .ref-hero-copy{background:rgba(252,249,241,.84)}}
+@media(max-width:520px){.reference-site .ref-steps{display:grid;grid-template-columns:1fr;gap:18px}.reference-site .ref-step{width:100%;border:0;gap:14px}.reference-site .ref-step h3{font-size:15px}.reference-site .ref-step p{font-size:14px}}
+@media(max-width:850px){.reference-site .coco-inner .feature-panel{min-width:0;grid-template-columns:minmax(0,1fr)}.reference-site .coco-inner .feature-panel>*{min-width:0;max-width:100%;overflow-wrap:anywhere}.reference-site .coco-inner .feature-panel .button{white-space:normal}.reference-site .coco-inner .service-card>div{min-width:0;overflow-wrap:anywhere}}

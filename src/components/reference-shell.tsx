@@ -43,6 +43,7 @@ export function Shell({
           <Brand />
         </Link>
         <nav
+          id="customer-navigation"
           className={open ? "ref-nav open" : "ref-nav"}
           aria-label={t("Main navigation", "പ്രധാന മെനു")}
         >
@@ -72,6 +73,7 @@ export function Shell({
           </Link>
           <button
             className="ref-menu"
+            aria-controls="customer-navigation"
             aria-expanded={open}
             aria-label={t("Toggle menu", "മെനു തുറക്കുക")}
             onClick={() => setOpen(!open)}
