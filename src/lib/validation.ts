@@ -15,7 +15,7 @@ export const bookingSchema = z.object({
   slotId: z.string().min(1).max(100),
   notes: z.string().trim().max(1000).default(""),
   method: z.enum(["DELIVERY", "RAZORPAY"]),
-  language: z.enum(["en", "ml"]),
+  language: z.enum(["en", "ml", "ta", "hi"]),
   requestKey: z.string().uuid(),
 });
 export const contactSchema = z.object({

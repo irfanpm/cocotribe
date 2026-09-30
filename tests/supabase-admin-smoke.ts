@@ -1,0 +1,25 @@
+import {PrismaClient} from '@prisma/client';
+import {randomUUID,randomBytes} from 'node:crypto';
+import {hash} from 'bcryptjs';
+import assert from 'node:assert/strict';
+const db=new PrismaClient();const origin='http://127.0.0.1:3000';const tag=randomUUID();const email=`qa-${tag}@example.invalid`,password=randomBytes(24).toString('hex');let adminId='';
+const post=(path:string,data:unknown,cookie='')=>fetch(origin+path,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify(data)});
+async function main(){
+ assert.equal(process.env.RUN_DATABASE_TESTS,'1');
+ assert.match(process.env.DATABASE_URL || '', /postgres\.lyypjkfumbackxarkgna/);
+ const admin=await db.admin.create({data:{email,passwordHash:await hash(password,12)}});adminId=admin.id;
+ const login=await post('/api/admin/login',{email,password});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie')!.split(';')[0];
+ const product={slug:`qa-${tag}`,nameEn:`QA ${tag}`,nameMl:'പരീക്ഷണം',descriptionEn:'Temporary test product',descriptionMl:'പരീക്ഷണം',price:4000,image:'/images/fresh.jpg',stock:10,active:false};
+ assert.equal((await post('/api/admin/manage',{kind:'product',data:product},cookie)).status,200);
+ const p=await db.product.findUniqueOrThrow({where:{slug:product.slug}});assert.equal(p.active,false);
+ assert.equal((await post('/api/admin/manage',{kind:'product',id:p.id,data:{...product,price:4500,stock:15}},cookie)).status,200);
+ const changed=await db.product.findUniqueOrThrow({where:{id:p.id}});assert.equal(changed.price,4500);assert.equal(changed.stock,15);
+ console.log('PASS: product creation, price, stock and inactive state persisted');
+ const slot={label:`QA ${tag}`,startMinute:600,capacity:5,active:false};assert.equal((await post('/api/admin/manage',{kind:'slot',data:slot},cookie)).status,200);
+ const t=await db.timeSlot.findFirstOrThrow({where:{label:slot.label}});assert.equal((await post('/api/admin/manage',{kind:'slot',id:t.id,data:{...slot,capacity:7}},cookie)).status,200);assert.equal((await db.timeSlot.findUniqueOrThrow({where:{id:t.id}})).capacity,7);
+ console.log('PASS: time-slot creation and capacity update persisted');
+ const faq={questionEn:`QA ${tag}`,questionMl:'പരീക്ഷണം',answerEn:'Temporary test',answerMl:'പരീക്ഷണം',position:999,active:false};assert.equal((await post('/api/admin/manage',{kind:'faq',data:faq},cookie)).status,200);
+ const f=await db.faq.findFirstOrThrow({where:{questionEn:faq.questionEn}});assert.equal((await post('/api/admin/manage',{kind:'faq',id:f.id,data:{...faq,answerEn:'Updated test answer'}},cookie)).status,200);assert.equal((await db.faq.findUniqueOrThrow({where:{id:f.id}})).answerEn,'Updated test answer');console.log('PASS: FAQ creation and update persisted');
+ assert.equal((await post('/api/admin/manage',{kind:'settings',data:{}},cookie)).status,400);console.log('PASS: invalid settings rejected; existing business settings unchanged');
+ assert.ok(await db.auditLog.count({where:{adminId}})>=6);console.log('PASS: admin changes audited');
+}main().catch(e=>{console.error(e instanceof Error?e.message:'FAILED');process.exitCode=1}).finally(async()=>{await db.product.deleteMany({where:{slug:`qa-${tag}`}});await db.timeSlot.deleteMany({where:{label:`QA ${tag}`}});await db.faq.deleteMany({where:{questionEn:`QA ${tag}`}});if(adminId){await db.auditLog.deleteMany({where:{adminId}});await db.admin.delete({where:{id:adminId}})}await db.$disconnect();console.log('Temporary CRUD fixtures removed');});
