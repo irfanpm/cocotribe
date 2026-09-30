@@ -29,7 +29,7 @@ For local PostgreSQL, optionally run:
 docker compose up -d db
 ```
 
-Alternatively use an existing PostgreSQL 17+ installation or managed PostgreSQL. Create a **dedicated** database and configure `DATABASE_URL`. Use TLS for hosted connections, a least-privilege runtime database user and a separate migration credential if your host supports it. The Docker password is for local development only; never use it in production.
+Alternatively use an existing PostgreSQL 17+ installation or managed PostgreSQL. Create a **dedicated** database and configure `DATABASE_URL` and `DIRECT_URL`. For local PostgreSQL, set both to the same local connection string. Use TLS for hosted connections, a least-privilege runtime database user and a separate migration credential if your host supports it. The Docker password is for local development only; never use it in production.
 
 1. Generate a strong random `SESSION_SECRET` (48+ characters):
    ```sh
@@ -171,3 +171,28 @@ The user selected COCOTRIBE as the final name. The homepage reproduces the suppl
 
 ### Tamil and Hindi
 The customer interface now supports English, Malayalam, Tamil and Hindi. The header selector remembers the selected language on this device. Tamil/Hindi translations live in `src/lib/translations.ts`; dynamic booking messages are handled in `src/lib/translate.ts`. Existing seeded products, FAQs and website content are translated. Custom English content entered later by an administrator falls back to English until its translation is added to the dictionary. Admin management remains in English. No database migration is required for this update.
+
+
+## Supabase database setup
+
+This project uses Supabase PostgreSQL through server-side Prisma 6. Existing bookings, products, admin authentication and payment routes keep their current behavior. Supabase Auth and browser database access are not required.
+
+1. Create a dedicated Supabase project. In **Connect**, copy the exact transaction-pooler and session-pooler URLs; do not guess the pooler host or project reference.
+2. In private `.env` and Vercel Production environment variables, set `DATABASE_URL` to the transaction-pooler URL (port 6543) with `pgbouncer=true&connection_limit=1&sslmode=require`. Set `DIRECT_URL` to the session-pooler URL (port 5432) with `sslmode=require`. URL-encode password special characters. Never use a `NEXT_PUBLIC_` prefix for either URL.
+3. Disable the Supabase Data API for this dedicated backend-only project in its API settings before applying migrations. The app accesses PostgreSQL exclusively through authenticated server routes, not the Supabase REST API. Do not expose its tables containing customer information or admin password hashes through the Data API. If sharing an existing Supabase project, configure restricted exposed schemas and appropriate RLS before migrating instead of disabling services other apps use.
+4. Run the following locally with your private `.env` configured:
+
+   ```sh
+   npm run db:generate
+   npm run db:migrate
+   node --env-file=.env --import tsx prisma/seed.ts
+   node --env-file=.env --import tsx scripts/create-admin.ts
+   ```
+
+   The last command also requires your chosen `ADMIN_EMAIL` and `ADMIN_PASSWORD` (minimum 14 characters). Remove the password environment variable after provisioning.
+5. Set `APP_URL` to your exact HTTPS website origin and configure a strong `SESSION_SECRET`. After migrations, seeding and admin setup succeed, set `DEMO_MODE=false` and redeploy Vercel. Keep Razorpay variables configured separately for online payments.
+6. Test admin login and a Pay at Delivery booking. Verify that the order appears in Supabase and in the dashboard.
+
+Changing connection strings does not move existing data. If an old database contains real records, migrate them separately before switching production. Never run `prisma migrate reset` on production. No Supabase project credentials are committed, and no live migration is performed by this source update.
+
+Reference: https://supabase.com/docs/guides/database/prisma
