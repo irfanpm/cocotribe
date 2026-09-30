@@ -67,6 +67,7 @@ export const settingsSchema = z.object({
   leadHours: z.number().int().min(1).max(168),
   maxDays: z.number().int().min(1).max(365),
   deliveryEnabled: z.boolean(),
+  onlineEnabled: z.boolean(),
 });
 export function indiaDate(now = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {

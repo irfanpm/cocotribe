@@ -152,6 +152,7 @@ const labels: Record<string, string> = {
   leadHours: "Minimum notice in hours",
   maxDays: "Maximum days in advance",
   deliveryEnabled: "Enable Pay at Delivery",
+  onlineEnabled: "Enable Online Payment (Razorpay keys required)",
 };
 const emptyProduct = {
   slug: "",

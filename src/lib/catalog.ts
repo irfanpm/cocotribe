@@ -13,7 +13,7 @@ export async function getCatalog(): Promise<Catalog> {
       products: sampleProducts,
       slots: sampleSlots,
       settings: sampleSettings,
-      faqs: sampleFaqs.filter((faq) => faq.questionEn !== "Can I pay online?"),
+      faqs: sampleFaqs,
       demo: true,
       online: false,
     };
@@ -33,8 +33,8 @@ export async function getCatalog(): Promise<Catalog> {
     products,
     slots,
     settings,
-    faqs: faqs.filter((faq) => faq.questionEn !== "Can I pay online?"),
+    faqs,
     demo: false,
-    online: false,
+    online: settings.onlineEnabled && !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
   };
 }

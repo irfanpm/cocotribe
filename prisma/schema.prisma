@@ -109,6 +109,7 @@ model Settings {
   leadHours Int @default(2)
   maxDays Int @default(90)
   deliveryEnabled Boolean @default(true)
+  onlineEnabled Boolean @default(false)
 }
 model ContactMessage {
   id String @id @default(cuid())

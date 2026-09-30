@@ -76,6 +76,7 @@ export const sampleSettings = {
   leadHours: 2,
   maxDays: 90,
   deliveryEnabled: true,
+  onlineEnabled: false,
 };
 const faqRows = [
   [
