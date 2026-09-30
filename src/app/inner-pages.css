@@ -94,3 +94,9 @@ html:is([lang="ta"],[lang="hi"]) .ref-brand-lockup small{white-space:normal;line
 @media(max-width:850px){.reference-site .ref-step>div{min-width:0;overflow-wrap:anywhere}.reference-site .ref-step .ref-circle{flex-shrink:0}.reference-site .ref-hero-copy{background:rgba(252,249,241,.84)}}
 @media(max-width:520px){.reference-site .ref-steps{display:grid;grid-template-columns:1fr;gap:18px}.reference-site .ref-step{width:100%;border:0;gap:14px}.reference-site .ref-step h3{font-size:15px}.reference-site .ref-step p{font-size:14px}}
 @media(max-width:850px){.reference-site .coco-inner .feature-panel{min-width:0;grid-template-columns:minmax(0,1fr)}.reference-site .coco-inner .feature-panel>*{min-width:0;max-width:100%;overflow-wrap:anywhere}.reference-site .coco-inner .feature-panel .button{white-space:normal}.reference-site .coco-inner .service-card>div{min-width:0;overflow-wrap:anywhere}}
+/* Keep mobile photography unobscured; put readable copy on ivory below it. */
+@media(max-width:850px){
+ .reference-site .ref-hero{background:#f8f5ed;min-height:0;height:auto}
+ .reference-site .ref-hero:before{content:"";display:block;position:relative;inset:auto;width:100%;height:clamp(210px,58vw,340px);min-height:0;background:url('/images/reference-hero.jpg') 65% 52% / auto 100% no-repeat;opacity:1;z-index:0}
+ .reference-site .ref-hero .ref-hero-copy{background:#f8f5ed;padding-top:24px}
+}
