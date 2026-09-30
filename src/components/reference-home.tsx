@@ -151,7 +151,7 @@ function QuickBooking({ catalog }: { catalog: Catalog }) {
         </label>
         <label className="ref-span-two">
           {t("Payment Method *", "പണമടയ്ക്കുന്ന മാർഗം *")}
-          <select name="method" required>
+          <select name="method" required defaultValue="DELIVERY">
             <option value="">
               {t("Select payment method", "പേയ്‌മെന്റ് തിരഞ്ഞെടുക്കുക")}
             </option>
@@ -160,10 +160,7 @@ function QuickBooking({ catalog }: { catalog: Catalog }) {
                 {t("Pay at Delivery", "ലഭിക്കുമ്പോൾ പണമടയ്ക്കാം")}
               </option>
             )}
-            <option value="RAZORPAY" disabled={!catalog.online}>
-              {t("Online Payment (Razorpay)", "ഓൺലൈൻ (Razorpay)")}
-              {!catalog.online ? t(" · Coming soon", " · ഉടൻ ലഭ്യമാകും") : ""}
-            </option>
+
           </select>
         </label>
       </div>
@@ -173,8 +170,8 @@ function QuickBooking({ catalog }: { catalog: Catalog }) {
       </button>
       <small>
         {t(
-          "Review your order before secure payment (Razorpay)",
-          "സുരക്ഷിത പേയ്‌മെന്റിന് മുമ്പ് ഓർഡർ പരിശോധിക്കാം (Razorpay)",
+          "Pay when you receive your coconuts.",
+          "തേങ്ങ കൈപ്പറ്റുമ്പോൾ പണമടയ്ക്കാം.",
         )}
       </small>
     </form>
@@ -533,28 +530,14 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
             </div>
           </div>
           <div className="ref-payment-card">
-            <strong>
-              {t(
-                "Online Payment (Razorpay / UPI)",
-                "ഓൺലൈൻ പേയ്‌മെന്റ് (Razorpay / UPI)",
-              )}
-            </strong>
-            <ReferenceCrop
-              x={1383}
-              y={557}
-              w={220}
-              h={63}
-              label="Razorpay, UPI, Google Pay, PhonePe and Paytm"
-              className="ref-payment-logos"
-            />
             <div className="ref-delivery">
               <Banknote size={40} />
               <div>
                 <h3>{t("Pay at Delivery", "ലഭിക്കുമ്പോൾ പണമടയ്ക്കാം")}</h3>
                 <p>
                   {t(
-                    "Also available for selected locations",
-                    "തിരഞ്ഞെടുത്ത സ്ഥലങ്ങളിൽ ലഭ്യമാണ്",
+                    "Pay when you receive your coconuts.",
+                    "തേങ്ങ കൈപ്പറ്റുമ്പോൾ പണമടയ്ക്കാം.",
                   )}
                 </p>
               </div>

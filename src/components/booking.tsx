@@ -79,7 +79,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
   const [date, setDate] = useState(params.get("date") || "");
   const [slotId, setSlotId] = useState("");
   const [method, setMethod] = useState(
-    catalog.settings.deliveryEnabled ? "DELIVERY" : "RAZORPAY",
+    "DELIVERY",
   );
   const [name, setName] = useState(""),
     [phone, setPhone] = useState(""),
@@ -353,35 +353,6 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                     </span>
                   </label>
                 )}
-                <label className={method === "RAZORPAY" ? "selected" : ""}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="RAZORPAY"
-                    checked={method === "RAZORPAY"}
-                    onChange={(e) => setMethod(e.target.value)}
-                    disabled={!catalog.online}
-                  />
-                  <span>
-                    <strong>
-                      {t(
-                        "Pay online with Razorpay",
-                        "Razorpay വഴി ഓൺലൈൻ പേയ്‌മെന്റ്",
-                      )}
-                    </strong>
-                    <small>
-                      {catalog.online
-                        ? t(
-                            "UPI, cards and more.",
-                            "UPI, കാർഡ്, മറ്റു മാർഗങ്ങൾ.",
-                          )
-                        : t(
-                            "Not available yet. Please contact us.",
-                            "ഇപ്പോൾ ലഭ്യമല്ല. ദയവായി ബന്ധപ്പെടുക.",
-                          )}
-                    </small>
-                  </span>
-                </label>
               </fieldset>
               <button
                 className="button full"
@@ -496,8 +467,8 @@ export function Booking({ catalog }: { catalog: Catalog }) {
             <p>
               <ShieldCheck size={18} />
               {t(
-                "Your payment details stay with Razorpay.",
-                "പേയ്‌മെന്റ് വിവരങ്ങൾ Razorpay-ൽ സുരക്ഷിതം.",
+                "Pay when you receive your coconuts.",
+                "തേങ്ങ കൈപ്പറ്റുമ്പോൾ പണമടയ്ക്കാം.",
               )}
             </p>
             <p>

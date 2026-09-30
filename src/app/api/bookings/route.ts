@@ -12,10 +12,8 @@ export async function POST(request: Request) {
     const data = bookingSchema.parse(await body(request));
     await rateLimit("booking", data.phone, 8);
     await rateLimit("booking-global", "all", 300, 1);
-    if (
-      data.method === "RAZORPAY" &&
-      (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET)
-    )
+    // New bookings currently accept Pay at Delivery only.
+    if (data.method !== "DELIVERY")
       throw new AppError("PAYMENT_UNAVAILABLE", 503);
     let { order, token } = await createBooking(data);
     if (order.status === "CANCELLED")
