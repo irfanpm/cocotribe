@@ -1,6 +1,7 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { CoconutLoader } from "./coconut-loader";
 import { sampleProducts, sampleSlots, sampleFaqs, sampleSettings } from "@/lib/demo";
 import { useRouter } from "next/navigation";
 import { LogOut, Plus, Search, LockKeyhole, ArrowRight, X } from "lucide-react";
@@ -239,8 +240,13 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
       previous?.focus();
     };
   }, [!!editor, !!selected]);
+  const loadSequence = useRef(0);
+  const [refreshing, setRefreshing] = useState(false);
   const load = useCallback(async () => {
+    const sequence = ++loadSequence.current;
+    setRefreshing(true);
     if (preview) {
+      setRefreshing(false);
       const orders = previewOrders.filter(o => (!search || `${o.name} ${o.bookingId} ${o.phone}`.toLowerCase().includes(search.toLowerCase())) && (!date || o.date === date) && (!payment || o.paymentStatus === payment) && (!status || o.status === status));
       setData({orders, count: orders.length, page: 0, products: sampleProducts, slots: sampleSlots, faqs: sampleFaqs, settings: sampleSettings, messages: [{id:"sample-message",name:"Sample Customer",phone:"0000000000",message:"Sample enquiry: Do you supply coconuts for family events?",createdAt:new Date().toISOString()}],stats:{todays:3,upcoming:3,total:3,pending:2,paid:1,delivery:2}});
       return;
@@ -259,10 +265,14 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
         return;
       }
       if (!r.ok) throw new Error("Could not load the dashboard. Please retry.");
-      setData(await r.json());
+      const next = await r.json();
+      if (sequence !== loadSequence.current) return;
+      setData(next);
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to load.");
+      if (sequence === loadSequence.current) setError(e instanceof Error ? e.message : "Unable to load.");
+    } finally {
+      if (sequence === loadSequence.current) setRefreshing(false);
     }
   }, [search, date, payment, status, page, router, preview]);
   useEffect(() => {
@@ -294,7 +304,19 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
         );
       setEditor(null);
       setSelected(null);
+      if (result.entity) setData(current => {
+        if (!current) return current;
+        const replace = <T extends {id: string}>(items: T[], entity: T) => items.some(item => item.id === entity.id)
+          ? items.map(item => item.id === entity.id ? entity : item) : [...items, entity];
+        if (kind === "product") return {...current, products: replace(current.products, result.entity)};
+        if (kind === "slot") return {...current, slots: replace(current.slots, result.entity)};
+        if (kind === "faq") return {...current, faqs: replace(current.faqs, result.entity)};
+        if (kind === "settings") return {...current, settings: result.entity};
+        return current;
+      });
       setNotice("Changes saved.");
+      try { localStorage.setItem("coco-catalog-updated", String(Date.now())); } catch {}
+      router.refresh();
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed.");
@@ -331,13 +353,14 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
           </button>
         </p>
       )}
+      {data && refreshing && <CoconutLoader compact />}
       {notice && (
         <p role="status" className="notice success">
           {notice}
         </p>
       )}
       {!data ? (
-        <p role="status">Loading dashboard…</p>
+        error ? null : <CoconutLoader />
       ) : (
         <>
           <div className="stats">

@@ -26,10 +26,6 @@ export async function serial<T>(
   throw new AppError("TRY_AGAIN", 409);
 }
 export async function createBooking(data: z.infer<typeof bookingSchema>) {
-  const paymentSettings = await db.settings.findUniqueOrThrow({ where: { id: "main" } });
-  if ((data.method === "RAZORPAY" && !paymentSettings.onlineEnabled) ||
-      (data.method === "DELIVERY" && !paymentSettings.deliveryEnabled))
-    throw new AppError("PAYMENT_UNAVAILABLE", 409);
   const secret = process.env.SESSION_SECRET;
   if (!secret || secret.length < 48)
     throw new AppError("SERVICE_UNAVAILABLE", 503);
@@ -61,7 +57,8 @@ export async function createBooking(data: z.infer<typeof bookingSchema>) {
       )
     )
       throw new AppError("INVALID_SLOT", 409);
-    if (data.method === "DELIVERY" && !settings.deliveryEnabled)
+    if ((data.method === "RAZORPAY" && !settings.onlineEnabled) ||
+        (data.method === "DELIVERY" && !settings.deliveryEnabled))
       throw new AppError("PAYMENT_UNAVAILABLE", 409);
     const count = await tx.order.count({
       where: {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -30,24 +31,25 @@ export async function POST(request: Request) {
       })
       .parse(await body(request));
     const { kind, id } = input;
-    await serial(async (tx) => {
+    const entity = await serial(async (tx) => {
+      let saved: unknown = null;
       if (kind === "product") {
         const data = productSchema.parse(input.data);
-        if (id) await tx.product.update({ where: { id }, data });
-        else await tx.product.create({ data });
+        if (id) saved = await tx.product.update({ where: { id }, data });
+        else saved = await tx.product.create({ data });
       }
       if (kind === "slot") {
         const data = slotSchema.parse(input.data);
-        if (id) await tx.timeSlot.update({ where: { id }, data });
-        else await tx.timeSlot.create({ data });
+        if (id) saved = await tx.timeSlot.update({ where: { id }, data });
+        else saved = await tx.timeSlot.create({ data });
       }
       if (kind === "faq") {
         const data = faqSchema.parse(input.data);
-        if (id) await tx.faq.update({ where: { id }, data });
-        else await tx.faq.create({ data });
+        if (id) saved = await tx.faq.update({ where: { id }, data });
+        else saved = await tx.faq.create({ data });
       }
       if (kind === "settings")
-        await tx.settings.update({
+        saved = await tx.settings.update({
           where: { id: "main" },
           data: settingsSchema.parse(input.data),
         });
@@ -120,8 +122,11 @@ export async function POST(request: Request) {
           entityId: id || "new",
         },
       });
+      return saved;
     });
-    return NextResponse.json({ ok: true });
+    revalidateTag("catalog", {expire: 0});
+    revalidatePath("/", "layout");
+    return NextResponse.json({ ok: true, entity });
   } catch (e) {
     return fail(e);
   }

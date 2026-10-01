@@ -48,12 +48,7 @@ export async function GET(request: Request) {
       faqs,
       settings,
       messages,
-      total,
-      todays,
-      upcoming,
-      pending,
-      paid,
-      delivery,
+      groups,
     ] = await Promise.all([
       db.order.findMany({
         where,
@@ -68,20 +63,16 @@ export async function GET(request: Request) {
       db.faq.findMany({ orderBy: { position: "asc" } }),
       db.settings.findUniqueOrThrow({ where: { id: "main" } }),
       db.contactMessage.findMany({ take: 100, orderBy: { createdAt: "desc" } }),
-      db.order.count(),
-      db.order.count({ where: { date: today, status: { not: "CANCELLED" } } }),
-      db.order.count({
-        where: {
-          date: { gt: today },
-          status: { notIn: ["CANCELLED", "COMPLETED"] },
-        },
-      }),
-      db.order.count({
-        where: { paymentStatus: "PENDING", status: { not: "CANCELLED" } },
-      }),
-      db.order.count({ where: { paymentStatus: "PAID" } }),
-      db.order.count({ where: { method: "DELIVERY" } }),
+      db.$queryRaw<Array<{total:number;todays:number;upcoming:number;pending:number;paid:number;delivery:number}>>`
+        SELECT COUNT(*)::int AS total,
+          COUNT(*) FILTER (WHERE date = ${today} AND status <> 'CANCELLED')::int AS todays,
+          COUNT(*) FILTER (WHERE date > ${today} AND status NOT IN ('CANCELLED', 'COMPLETED'))::int AS upcoming,
+          COUNT(*) FILTER (WHERE "paymentStatus" = 'PENDING' AND status <> 'CANCELLED')::int AS pending,
+          COUNT(*) FILTER (WHERE "paymentStatus" = 'PAID')::int AS paid,
+          COUNT(*) FILTER (WHERE method = 'DELIVERY')::int AS delivery
+        FROM "Order"`,
     ]);
+    const stats = groups[0];
     return NextResponse.json(
       {
         orders,
@@ -92,7 +83,7 @@ export async function GET(request: Request) {
         faqs,
         settings,
         messages,
-        stats: { total, todays, upcoming, pending, paid, delivery },
+        stats,
       },
       { headers: { "Cache-Control": "no-store" } },
     );

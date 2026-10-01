@@ -20,3 +20,13 @@ test('booking API accepts all four customer languages',()=>{
  for(const language of ['en','ml','ta','hi']) assert.equal(bookingSchema.safeParse({...data,language}).success,true);
  assert.equal(bookingSchema.safeParse({...data,language:'xx'}).success,false);
 });
+
+import { settingsSchema } from '../src/lib/validation';
+test('admin payment switches preserve independent on/off values', () => {
+ for (const onlineEnabled of [true, false]) for (const deliveryEnabled of [true, false]) {
+  const result = settingsSchema.parse({...sampleSettings, onlineEnabled, deliveryEnabled});
+  assert.equal(result.onlineEnabled, onlineEnabled);
+  assert.equal(result.deliveryEnabled, deliveryEnabled);
+ }
+ assert.equal(settingsSchema.safeParse({...sampleSettings, onlineEnabled:'false'}).success, false);
+});

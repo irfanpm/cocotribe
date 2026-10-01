@@ -44,7 +44,7 @@ export function ReferenceCrop({
       aria-label={label}
       className={`reference-crop ${className}`}
       style={{
-        backgroundImage: "url('/images/reference.png')",
+        backgroundImage: "url('/images/reference.webp')",
         backgroundSize: `${(1672 / w) * 100}% ${(941 / h) * 100}%`,
         backgroundPosition: `${(x / (1672 - w)) * 100}% ${(y / (941 - h)) * 100}%`,
       }}
@@ -166,10 +166,11 @@ function QuickBooking({ catalog }: { catalog: Catalog }) {
           </select>
         </label>
       </div>
-      <button className="button ref-proceed">
+      <button className="button ref-proceed" disabled={!catalog.online && !catalog.settings.deliveryEnabled}>
         <CalendarDays size={18} />
         {t("Proceed to Book", "ബുക്കിംഗിലേക്ക് തുടരുക")}
       </button>
+      {!catalog.online && !catalog.settings.deliveryEnabled && <p role="status">{t("Booking is temporarily unavailable. Please contact us.", "ബുക്കിംഗ് താൽക്കാലികമായി ലഭ്യമല്ല. ദയവായി ബന്ധപ്പെടുക.")}</p>}
       <small>
         {t(
           "Review your order",
@@ -184,58 +185,10 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
   const { t, lang } = useLanguage();
   const s = catalog.settings;
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const products = [
-    {
-      p: catalog.products.find(p => p.slug === 'fresh-coconut'),
-      en: "Fresh Coconut",
-      ml: "പച്ച തേങ്ങ",
-      desc: "Premium quality fresh coconuts ideal for pooja and everyday use.",
-      descMl: "പൂജയ്ക്കും ദൈനംദിന ഉപയോഗത്തിനും മികച്ച ഗുണമേന്മയുള്ള തേങ്ങകൾ.",
-      x: 59,
-      y: 532,
-      w: 179,
-      h: 68,
-      price: 4000,
-      action: "Book Now",
-    },
-    {
-      p: catalog.products.find(p => p.slug === 'dry-coconut'),
-      en: "Copra / Dry Coconut",
-      ml: "കൊപ്ര / ഉണക്കത്തേങ്ങ",
-      desc: "Dried coconuts, high quality and naturally processed.",
-      descMl: "ഉയർന്ന ഗുണമേന്മയുള്ള, സ്വാഭാവികമായി ഉണക്കിയ തേങ്ങകൾ.",
-      x: 258,
-      y: 532,
-      w: 177,
-      h: 68,
-      price: 12000,
-      action: "Enquiry",
-    },
-    {
-      en: "Bulk Supply",
-      ml: "മൊത്ത വിതരണം",
-      desc: "For events, institutions and large requirements.",
-      descMl: "ചടങ്ങുകൾക്കും സ്ഥാപനങ്ങൾക്കും വലിയ ആവശ്യങ്ങൾക്കും.",
-      x: 461,
-      y: 532,
-      w: 176,
-      h: 68,
-      price: 3800,
-      action: "Enquiry",
-    },
-    {
-      en: "Wholesale Orders",
-      ml: "മൊത്തവ്യാപാര ഓർഡറുകൾ",
-      desc: "Best rates for traders, retailers and businesses.",
-      descMl: "വ്യാപാരികൾക്കും കടകൾക്കും സ്ഥാപനങ്ങൾക്കും അനുയോജ്യമായ വില.",
-      x: 659,
-      y: 532,
-      w: 176,
-      h: 68,
-      price: 0,
-      action: "Enquiry",
-    },
-  ];
+  const products = catalog.products.map(p => ({
+    p, en: p.nameEn, ml: p.nameMl, desc: p.descriptionEn,
+    descMl: p.descriptionMl, price: p.price,
+  }));
   const faqs = [
     {
       en: "How early can I book coconuts for my Guruvayur visit?",
@@ -393,7 +346,8 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
             </Link>
           </div>
           <div className="ref-product-grid">
-            {products.map((item, i) => {
+            {!products.length && <p role="status">{t("No products available right now.", "ഇപ്പോൾ ഉൽപ്പന്നങ്ങൾ ലഭ്യമല്ല.")}</p>}
+            {products.map((item) => {
               const en = item.p?.nameEn || item.en,
                 ml = item.p?.nameMl || item.ml;
               return (
@@ -401,14 +355,7 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
                   <Link
                     href={item.p ? `/products/${item.p.slug}` : "/services"}
                   >
-                    <ReferenceCrop
-                      x={item.x}
-                      y={item.y}
-                      w={item.w}
-                      h={item.h}
-                      label={t(en, ml)}
-                      className="ref-product-photo"
-                    />
+                    <img src={item.p.image} alt={t(en, ml)} className="ref-product-photo" loading="lazy" decoding="async" width={360} height={180} />
                   </Link>
                   <div>
                     <h3>
@@ -424,7 +371,7 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
                         ? `${money(item.p?.price || item.price, lang)} ${t("onwards", "മുതൽ")}`
                         : t("Custom Pricing", "ആവശ്യാനുസരണമുള്ള വില")}
                     </strong>
-                    {i === 0 && item.p && item.p.stock > 0 ? (
+                    {item.p && item.p.stock > 0 ? (
                       <Link
                         className="button ref-card-button"
                         href={`/book?product=${item.p.id}`}

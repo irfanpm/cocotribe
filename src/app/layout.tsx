@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { CoconutLoader } from "@/components/coconut-loader";
 import "./globals.css";
 import "./reference.css";
 import "./custom.css";
@@ -19,19 +21,22 @@ export const metadata: Metadata = {
   },
 };
 export const dynamic = "force-dynamic";
-export default async function RootLayout({
+async function SiteFrame({ children }: { children: React.ReactNode }) {
+  const catalog = await getCatalog();
+  return <Shell settings={catalog.settings} demo={catalog.demo}>{children}</Shell>;
+}
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const catalog = await getCatalog();
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body>
         <LanguageProvider>
-          <Shell settings={catalog.settings} demo={catalog.demo}>
-            {children}
-          </Shell>
+          <Suspense fallback={<CoconutLoader />}>
+            <SiteFrame>{children}</SiteFrame>
+          </Suspense>
         </LanguageProvider>
       </body>
     </html>

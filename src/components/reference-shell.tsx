@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { CatalogSync } from "./catalog-sync";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Phone, Mail, MapPin, Palmtree, Heart } from "lucide-react";
@@ -35,6 +36,7 @@ export function Shell({
   const admin = pathname.startsWith("/admin");
   return (
     <div className="reference-site">
+      <CatalogSync />
       <a href="#main" className="skip">
         {t("Skip to content", "ഉള്ളടക്കത്തിലേക്ക് പോകുക")}
       </a>

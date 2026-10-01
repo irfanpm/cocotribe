@@ -324,6 +324,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                   )}
                 />
               </label>
+              {!catalog.online && !catalog.settings.deliveryEnabled && <p role="status">{t("Booking is temporarily unavailable. Please contact us.", "ബുക്കിംഗ് താൽക്കാലികമായി ലഭ്യമല്ല. ദയവായി ബന്ധപ്പെടുക.")}</p>}
               <fieldset className="payment-choices">
                 <legend>
                   {t(
@@ -496,8 +497,8 @@ export function Booking({ catalog }: { catalog: Catalog }) {
             <p>
               <ShieldCheck size={18} />
               {t(
-                "Pay when you receive your coconuts.",
-                "തേങ്ങ കൈപ്പറ്റുമ്പോൾ പണമടയ്ക്കാം.",
+                method === "RAZORPAY" ? "Your payment details stay with Razorpay." : "Pay when you receive your coconuts.",
+                method === "RAZORPAY" ? "പേയ്‌മെന്റ് വിവരങ്ങൾ Razorpay-ൽ സുരക്ഷിതം." : "തേങ്ങ കൈപ്പറ്റുമ്പോൾ പണമടയ്ക്കാം.",
               )}
             </p>
             <p>

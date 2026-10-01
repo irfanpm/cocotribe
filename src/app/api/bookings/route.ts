@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { db, isDemo } from "@/lib/db";
 import { body, sameOrigin, fail, AppError } from "@/lib/http";
 import { bookingSchema } from "@/lib/validation";
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
     )
       throw new AppError("PAYMENT_UNAVAILABLE", 503);
     let { order, token } = await createBooking(data);
+    revalidateTag("catalog", {expire: 0});
     if (order.status === "CANCELLED")
       throw new AppError("BOOKING_EXPIRED", 409);
     if (order.method === "RAZORPAY" && !order.razorpayOrderId) {

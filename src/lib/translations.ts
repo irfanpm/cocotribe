@@ -1,4 +1,7 @@
 export const translations: Record<string, {ta: string; hi: string}> = {
+  "Review your order": {ta:"உங்கள் ஆர்டரைச் சரிபார்க்கவும்", hi:"अपना ऑर्डर जाँचें"},
+  "No products available right now.": {ta:"தற்போது பொருட்கள் கிடைக்கவில்லை.", hi:"फ़िलहाल कोई उत्पाद उपलब्ध नहीं है।"},
+  "Booking is temporarily unavailable. Please contact us.": {ta:"முன்பதிவு தற்காலிகமாகக் கிடைக்கவில்லை. எங்களைத் தொடர்புகொள்ளவும்.", hi:"बुकिंग अस्थायी रूप से उपलब्ध नहीं है। कृपया हमसे संपर्क करें।"},
   "Book Your Coconuts": {
     "ta": "உங்கள் தேங்காய்களை முன்பதிவு செய்யுங்கள்",
     "hi": "अपने नारियल बुक करें"
