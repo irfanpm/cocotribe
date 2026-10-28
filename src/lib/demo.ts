@@ -1,33 +1,5 @@
-export const sampleProducts = [
-  {
-    id: "fresh",
-    slug: "fresh-coconut",
-    nameEn: "Fresh Coconut",
-    nameMl: "പച്ച തേങ്ങ",
-    descriptionEn:
-      "Premium quality fresh coconuts ideal for pooja and everyday use.",
-    descriptionMl:
-      "പൂജയ്ക്കും ദൈനംദിന ഉപയോഗത്തിനും മികച്ച ഗുണമേന്മയുള്ള തേങ്ങകൾ.",
-    price: 4000,
-    image: "/images/fresh.jpg",
-    active: true,
-    stock: 500,
-  },
-  {
-    id: "copra",
-    slug: "dry-coconut",
-    nameEn: "Copra / Dry Coconut",
-    nameMl: "കൊപ്ര / ഉണക്കത്തേങ്ങ",
-    descriptionEn:
-      "Dried coconuts, high quality and naturally processed.",
-    descriptionMl:
-      "ഉയർന്ന ഗുണമേന്മയുള്ള, സ്വാഭാവികമായി ഉണക്കിയ തേങ്ങകൾ.",
-    price: 12000,
-    image: "/images/copra.jpg",
-    active: true,
-    stock: 200,
-  },
-];
+import { currentProducts } from "./product-catalog";
+export const sampleProducts = currentProducts;
 export const sampleSlots = [
   {
     id: "morning",

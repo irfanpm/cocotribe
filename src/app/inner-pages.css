@@ -139,3 +139,7 @@ body>.coconut-loader{min-height:100vh;min-height:100dvh}
 @media(min-width:851px){.reference-site .ref-hero .ref-hero-copy{width:auto;max-width:none}}
 @media(max-width:850px){.reference-site .ref-hero .ref-hero-copy{width:100%;max-width:none}}
 .reference-site .reference-home .ref-hero{height:auto}
+
+/* Keep complete product packaging visible in catalog and booking photos. */
+.reference-site img.ref-product-photo{aspect-ratio:4 / 3;object-fit:contain;background:#f7f3e9}
+.coco-inner .product-img,.coco-inner .detail-grid>img,.coco-inner .booking-aside>img{object-fit:contain;background:#f7f3e9}

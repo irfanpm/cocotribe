@@ -7,8 +7,9 @@ import {
 } from "../src/lib/demo";
 const db = new PrismaClient();
 async function main() {
+  await db.product.updateMany({where:{slug:{in:["fresh-coconut","dry-coconut"]}},data:{active:false}});
   for (const p of sampleProducts)
-    await db.product.upsert({ where: { id: p.id }, create: p, update: {} });
+    await db.product.upsert({ where: { slug: p.slug }, create: p, update: {} });
   for (const s of sampleSlots)
     await db.timeSlot.upsert({ where: { id: s.id }, create: s, update: {} });
   for (const f of sampleFaqs)

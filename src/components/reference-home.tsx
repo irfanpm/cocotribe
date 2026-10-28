@@ -368,7 +368,7 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
                     <p>{t(item.p?.descriptionEn || item.desc, item.p?.descriptionMl || item.descMl)}</p>
                     <strong>
                       {item.price
-                        ? `${money(item.p?.price || item.price, lang)} ${t("onwards", "മുതൽ")}`
+                        ? money(item.p?.price || item.price, lang)
                         : t("Custom Pricing", "ആവശ്യാനുസരണമുള്ള വില")}
                     </strong>
                     {item.p && item.p.stock > 0 ? (
