@@ -111,15 +111,14 @@ export function ProductCard({ p, number, demo }: { p: ProductView; number: strin
         <h3>{t(p.nameEn, p.nameMl)}</h3>
         <p>{t(p.descriptionEn, p.descriptionMl)}</p>
         <p className="price">{money(p.price, lang)} {t("onwards", "മുതൽ")}</p>
-        {p.stock > 0 ? (
+        <div className="product-actions">
           <Link href={`/book?product=${p.id}&quantity=1`} className="btn-primary w-full" style={{width: '100%'}}>
             <ShoppingCart size={16} /> {t("Book Now", "ബുക്ക് ചെയ്യാം")}
           </Link>
-        ) : (
           <WhatsApp number={number} product={t(p.nameEn, p.nameMl)} className="btn-outline w-full" style={{width: '100%'}}>
              {t("Enquiry", "അന്വേഷിക്കുക")}
           </WhatsApp>
-        )}
+        </div>
       </div>
     </div>
   );

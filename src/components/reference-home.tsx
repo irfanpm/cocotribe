@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   CalendarDays,
@@ -21,7 +20,6 @@ import {
 import { useLanguage } from "./language";
 import { WhatsApp, money } from "./ui";
 import type { Catalog } from "@/lib/demo";
-import { indiaDate } from "@/lib/validation";
 
 export function ReferenceCrop({
   x,
@@ -49,135 +47,6 @@ export function ReferenceCrop({
         backgroundPosition: `${(x / (1672 - w)) * 100}% ${(y / (941 - h)) * 100}%`,
       }}
     />
-  );
-}
-
-function QuickBooking({ catalog }: { catalog: Catalog }) {
-  const { t } = useLanguage();
-  const router = useRouter();
-  const [product, setProduct] = useState("");
-  return (
-    <form
-      className="ref-booking"
-      onSubmit={(e) => {
-        e.preventDefault();
-        const fields = Object.fromEntries(new FormData(e.currentTarget));
-        sessionStorage.setItem(
-          "cocotribe-booking-draft",
-          JSON.stringify(fields),
-        );
-        router.push("/book");
-      }}
-    >
-      <h2>{t("Book Your Coconuts", "നിങ്ങളുടെ തേങ്ങ ബുക്ക് ചെയ്യാം")}</h2>
-      <p className="ref-book-sub">{t("Easy booking for your visit", "എളുപ്പത്തിൽ ബുക്ക് ചെയ്യൂ")}</p>
-      <div className="ref-form-grid">
-        <label>
-          {t("Name *", "പേര് *")}
-          <input
-            name="name"
-            required
-            minLength={2}
-            maxLength={100}
-            autoComplete="name"
-            placeholder={t("Enter your name", "നിങ്ങളുടെ പേര്")}
-          />
-        </label>
-        <label>
-          {t("Phone *", "ഫോൺ *")}
-          <input
-            name="phone"
-            type="tel"
-            required
-            autoComplete="tel"
-            pattern="[0-9+ ()-]{10,18}"
-            placeholder={t("Enter your phone number", "ഫോൺ നമ്പർ")}
-          />
-        </label>
-        <label>
-          {t("Product *", "ഉൽപ്പന്നം *")}
-          <select
-            name="productId"
-            required
-            value={product}
-            onChange={(e) => setProduct(e.target.value)}
-          >
-            <option value="">
-              {t("Select product", "ഉൽപ്പന്നം തിരഞ്ഞെടുക്കുക")}
-            </option>
-            {catalog.products.map((p) => (
-              <option key={p.id} value={p.id} disabled={!p.stock}>
-                {t(p.nameEn, p.nameMl)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          {t("Quantity *", "എണ്ണം *")}
-          <input
-            name="quantity"
-            required
-            type="number"
-            min={1}
-            max={Math.min(
-              1000,
-              catalog.products.find((p) => p.id === product)?.stock || 1000,
-            )}
-            placeholder={t("Enter quantity", "എണ്ണം നൽകുക")}
-          />
-        </label>
-        <label>
-          {t("Preferred Date *", "ആവശ്യമായ തീയതി *")}
-          <input
-            name="date"
-            type="date"
-            min={indiaDate()}
-            max={indiaDate(
-              new Date(Date.now() + catalog.settings.maxDays * 86400000),
-            )}
-            required
-          />
-        </label>
-        <label>
-          {t("Time Slot *", "സമയം *")}
-          <select name="slotId" required>
-            <option value="">{t("Select time", "സമയം തിരഞ്ഞെടുക്കുക")}</option>
-            {catalog.slots.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="ref-span-two">
-          {t("Payment Method *", "പണമടയ്ക്കുന്ന മാർഗം *")}
-          <select name="method" required>
-            <option value="">
-              {t("Select payment method", "പേയ്‌മെന്റ് തിരഞ്ഞെടുക്കുക")}
-            </option>
-            {catalog.settings.deliveryEnabled && (
-              <option value="DELIVERY">
-                {t("Pay at Delivery", "ലഭിക്കുമ്പോൾ പണമടയ്ക്കാം")}
-              </option>
-            )}
-            {catalog.online && <option value="RAZORPAY">
-              {t("Online Payment (Razorpay)", "ഓൺലൈൻ (Razorpay)")}
-            </option>}
-          </select>
-        </label>
-      </div>
-      <button className="button ref-proceed" disabled={!catalog.online && !catalog.settings.deliveryEnabled}>
-        <CalendarDays size={18} />
-        {t("Proceed to Book", "ബുക്കിംഗിലേക്ക് തുടരുക")}
-      </button>
-      {!catalog.online && !catalog.settings.deliveryEnabled && <p role="status">{t("Booking is temporarily unavailable. Please contact us.", "ബുക്കിംഗ് താൽക്കാലികമായി ലഭ്യമല്ല. ദയവായി ബന്ധപ്പെടുക.")}</p>}
-      <small>
-        {t(
-          "Review your order",
-          "നിങ്ങളുടെ ഓർഡർ പരിശോധിക്കുക",
-        )}
-      </small>
-    </form>
   );
 }
 
@@ -269,7 +138,6 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
           {t("PEACEFUL DARSHAN", "ദർശനത്തിനായി")}
           <span />
         </p>
-        <QuickBooking catalog={catalog} />
         <div className="ref-blessing">
           <p>
             {t("May your", "നിങ്ങളുടെ")}
@@ -371,7 +239,7 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
                         ? money(item.p?.price || item.price, lang)
                         : t("Custom Pricing", "ആവശ്യാനുസരണമുള്ള വില")}
                     </strong>
-                    {item.p && item.p.stock > 0 ? (
+                    <div className="product-actions">
                       <Link
                         className="button ref-card-button"
                         href={`/book?product=${item.p.id}`}
@@ -379,7 +247,6 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
                         <ShoppingCart size={15} />
                         {t("Book Now", "ബുക്ക് ചെയ്യാം")}
                       </Link>
-                    ) : (
                       <WhatsApp
                         number={s.whatsapp}
                         product={t(en, ml)}
@@ -387,7 +254,7 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
                       >
                         {t("Enquiry", "അന്വേഷണം")}
                       </WhatsApp>
-                    )}
+                    </div>
                   </div>
                 </article>
               );

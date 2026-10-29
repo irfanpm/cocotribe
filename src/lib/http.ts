@@ -21,8 +21,19 @@ export function fail(error: unknown) {
 }
 export function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
-  if (!process.env.APP_URL || origin !== new URL(process.env.APP_URL).origin)
+  
+  let allowedOrigin = process.env.APP_URL ? new URL(process.env.APP_URL).origin : null;
+  
+  // Fallback for Vercel deployments if APP_URL is not explicitly set
+  if (!allowedOrigin && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    allowedOrigin = `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  } else if (!allowedOrigin && process.env.VERCEL_URL) {
+    allowedOrigin = `https://${process.env.VERCEL_URL}`;
+  }
+
+  if (!allowedOrigin || origin !== allowedOrigin) {
     throw new AppError("FORBIDDEN", 403);
+  }
 }
 export async function body(request: Request) {
   if (Number(request.headers.get("content-length") || 0) > 16000)

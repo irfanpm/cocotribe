@@ -143,3 +143,21 @@ body>.coconut-loader{min-height:100vh;min-height:100dvh}
 /* Keep complete product packaging visible in catalog and booking photos. */
 .reference-site img.ref-product-photo{aspect-ratio:4 / 3;object-fit:contain;background:#f7f3e9}
 .coco-inner .product-img,.coco-inner .detail-grid>img,.coco-inner .booking-aside>img{object-fit:contain;background:#f7f3e9}
+
+/* Landing hero leads to the dedicated booking page. */
+@media(min-width:851px){.reference-site .reference-home .ref-hero{display:block;padding-right:0;min-height:400px}.reference-site .reference-home .ref-hero .ref-hero-copy{width:48%;max-width:720px;padding:36px 24px 36px 7%;background:linear-gradient(90deg,#f8f5ed 65%,#f8f5eddd 85%,transparent)}}
+/* Full-width catalogue, followed by secondary services and payment information. */
+.reference-site .reference-home .ref-commerce{grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:28px;padding-block:28px}
+.reference-site .reference-home .ref-products{grid-column:1 / -1}
+.reference-site .reference-home .ref-product-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.reference-site .reference-home .ref-services,.reference-site .reference-home .ref-payments{min-width:0;align-self:start}
+.reference-site .reference-home .ref-product-card h3{font-size:17px;line-height:1.45;white-space:normal}
+.reference-site .reference-home .ref-product-card p{font-size:14px;line-height:1.65;min-height:0;margin-block:8px}
+.reference-site .reference-home .ref-product-card>div{padding:14px;gap:6px}
+.reference-site .reference-home .ref-product-card .ref-card-button{min-height:44px;font-size:14px}
+@media(max-width:1100px){.reference-site .reference-home .ref-product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:850px){.reference-site .reference-home .ref-commerce{grid-template-columns:minmax(0,1fr);gap:28px}.reference-site .reference-home .ref-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.reference-site .reference-home .ref-product-grid{grid-template-columns:minmax(0,1fr)}}
+
+.reference-site .product-actions{display:grid;grid-template-columns:1fr;gap:8px;margin-top:auto;padding-top:10px}
+.reference-site .product-actions .button,.reference-site .product-actions .btn-primary,.reference-site .product-actions .btn-outline{width:100%;min-height:44px;white-space:normal;text-align:center;margin:0}
