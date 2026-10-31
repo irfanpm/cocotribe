@@ -21,7 +21,17 @@ export function fail(error: unknown) {
 }
 export function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
-  
+  // Next may normalize the request hostname to localhost in development.
+  const requestUrl = new URL(request.url);
+  const loopback = ["127.0.0.1", "localhost", "[::1]"];
+  if (process.env.NODE_ENV !== "production" && origin) {
+    try {
+      const incoming = new URL(origin);
+      if (loopback.includes(requestUrl.hostname) && loopback.includes(incoming.hostname) &&
+          incoming.protocol === requestUrl.protocol && incoming.port === requestUrl.port) return;
+    } catch { /* Invalid origins are rejected below. */ }
+  }
+
   let allowedOrigin = process.env.APP_URL ? new URL(process.env.APP_URL).origin : null;
   
   // Fallback for Vercel deployments if APP_URL is not explicitly set

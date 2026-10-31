@@ -308,7 +308,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
         if (!current) return current;
         const replace = <T extends {id: string}>(items: T[], entity: T) => items.some(item => item.id === entity.id)
           ? items.map(item => item.id === entity.id ? entity : item) : [...items, entity];
-        if (kind === "product") return {...current, products: replace(current.products, result.entity)};
+        if (kind === "product" || kind === "stock") return {...current, products: replace(current.products, result.entity)};
         if (kind === "slot") return {...current, slots: replace(current.slots, result.entity)};
         if (kind === "faq") return {...current, faqs: replace(current.faqs, result.entity)};
         if (kind === "settings") return {...current, settings: result.entity};
@@ -575,6 +575,17 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                       {money(p.price)} · {p.stock} available ·{" "}
                       {p.active ? "Active" : "Inactive"}
                     </p>
+                    <form key={`${p.id}-${p.stock}`} onSubmit={e => {
+                      e.preventDefault();
+                      const stock = Number(new FormData(e.currentTarget).get("stock"));
+                      void save("stock", p.id, {stock});
+                    }}>
+                      <label className="field">Available stock / ലഭ്യമായ സ്റ്റോക്ക്
+                        <input name="stock" type="number" min="0" max="1000000" step="1" required defaultValue={p.stock} />
+                      </label>
+                      <p className="muted">Enter remaining packs, bottles or packets. Coconut stock is packs, not individual pieces.</p>
+                      <button className="button" type="submit" disabled={busy}>{busy ? "Saving…" : "Save stock"}</button>
+                    </form>
                     <button
                       className="button outline"
                       onClick={() =>

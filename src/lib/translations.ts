@@ -1,4 +1,5 @@
 export const translations: Record<string, {ta: string; hi: string}> = {
+  "This product is currently unavailable for booking. Please enquire about availability.": {ta:"இந்தப் பொருள் தற்போது முன்பதிவுக்குக் கிடைக்கவில்லை. கிடைப்பதைப் பற்றி விசாரிக்கவும்.",hi:"यह उत्पाद अभी बुकिंग के लिए उपलब्ध नहीं है। उपलब्धता के बारे में पूछें।"},
 
   "Pooja Coconut · Mini Pack (2 pcs)": {
     "ta": "பூஜை தேங்காய் · மினி பேக் (2 எண்ணிக்கை)",

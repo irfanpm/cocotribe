@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const admin = await requireAdmin();
     const input = z
       .object({
-        kind: z.enum(["product", "slot", "faq", "settings", "order"]),
+        kind: z.enum(["product", "stock", "slot", "faq", "settings", "order"]),
         id: z.string().max(100).optional(),
         data: z.unknown(),
       })
@@ -33,6 +33,11 @@ export async function POST(request: Request) {
     const { kind, id } = input;
     const entity = await serial(async (tx) => {
       let saved: unknown = null;
+      if (kind === "stock") {
+        if (!id) throw new AppError("INVALID_INPUT");
+        const data = z.object({stock: z.number().int().min(0).max(1000000)}).parse(input.data);
+        saved = await tx.product.update({where:{id}, data});
+      }
       if (kind === "product") {
         const data = productSchema.parse(input.data);
         if (id) saved = await tx.product.update({ where: { id }, data });

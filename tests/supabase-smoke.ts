@@ -5,7 +5,7 @@ import { hash as passwordHash } from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 import { indiaDate } from "../src/lib/validation";
 const db = new PrismaClient();
-const origin = "http://127.0.0.1:3000";
+const origin = process.env.TEST_ORIGIN || "http://127.0.0.1:3000";
 async function main() {
   assert.equal(process.env.RUN_DATABASE_TESTS, "1");
   assert.match(process.env.DATABASE_URL || "", /postgres\.lyypjkfumbackxarkgna/);

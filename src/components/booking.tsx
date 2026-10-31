@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "./language";
 import { Heading, Quantity, money, WhatsApp, ErrorMessage } from "./ui";
-import { indiaDate } from "@/lib/validation";
+import { indiaDate, validBookingTime, phoneSchema } from "@/lib/validation";
 import type { Catalog } from "@/lib/demo";
 type GatewayResponse = {
   razorpay_payment_id: string;
@@ -71,7 +71,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
   const params = useSearchParams();
   const router = useRouter();
   const [productId, setProductId] = useState(
-    params.get("product") || catalog.products[0]?.id || "",
+    params.get("product") || catalog.products.find(p => p.stock > 0)?.id || catalog.products[0]?.id || "",
   );
   const [quantity, setQuantity] = useState(
     Math.max(1, Math.min(1000, Number(params.get("quantity")) || 1)),
@@ -95,14 +95,14 @@ export function Booking({ catalog }: { catalog: Catalog }) {
     if (stage === 1) reviewRef.current?.focus();
   }, [stage]);
   useEffect(() => {
-    const raw = sessionStorage.getItem("cocotribe-booking-draft");
+    let raw: string | null = null;
+    try { raw = sessionStorage.getItem("cocotribe-booking-draft"); sessionStorage.removeItem("cocotribe-booking-draft"); } catch { return; }
     if (!raw) return;
-    sessionStorage.removeItem("cocotribe-booking-draft");
     try {
       const draft = JSON.parse(raw);
       setName(String(draft.name || ""));
       setPhone(String(draft.phone || ""));
-      if (catalog.products.some((p) => p.id === draft.productId))
+      if (!params.get("product") && catalog.products.some((p) => p.id === draft.productId))
         setProductId(draft.productId);
       setQuantity(Math.max(1, Math.min(1000, Number(draft.quantity) || 1)));
       setDate(String(draft.date || ""));
@@ -121,7 +121,10 @@ export function Booking({ catalog }: { catalog: Catalog }) {
   );
   function review(e: React.FormEvent) {
     e.preventDefault();
-    if (!product || !slot) return;
+    if (!product || product.stock < quantity) { setError("OUT_OF_STOCK"); return; }
+    if (!phoneSchema.safeParse(phone).success || name.trim().length < 2) { setError("INVALID_INPUT"); return; }
+    if (!slot || !validBookingTime(date, slot.startMinute, catalog.settings.leadHours, catalog.settings.maxDays)) { setError("INVALID_SLOT"); return; }
+    if (!method || (method === "DELIVERY" ? !catalog.settings.deliveryEnabled : !catalog.online)) { setError("PAYMENT_UNAVAILABLE"); return; }
     setError("");
     setStage(1);
   }
@@ -224,6 +227,10 @@ export function Booking({ catalog }: { catalog: Catalog }) {
               <h2>
                 {t("Let’s plan your order.", "നിങ്ങളുടെ ഓർഡർ തയ്യാറാക്കാം.")}
               </h2>
+              {(!product || product.stock === 0) && <div className="notice" role="status">
+                <p>{t("This product is currently unavailable for booking. Please enquire about availability.", "ഈ ഉൽപ്പന്നം ഇപ്പോൾ ബുക്കിംഗിന് ലഭ്യമല്ല. ലഭ്യത അറിയാൻ അന്വേഷിക്കുക.")}</p>
+                <WhatsApp number={catalog.settings.whatsapp} product={product ? t(product.nameEn, product.nameMl) : undefined} />
+              </div>}
               <div className="form-grid">
                 <label className="field">
                   {t("Full name", "പൂർണ്ണ പേര്")}
@@ -281,7 +288,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                   <input
                     type="date"
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                    onChange={(e) => { setDate(e.target.value); setSlotId(""); }}
                     min={indiaDate()}
                     max={maxDate}
                     required
@@ -297,7 +304,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                     <option value="">
                       {t("Choose a time", "സമയം തിരഞ്ഞെടുക്കുക")}
                     </option>
-                    {catalog.slots.map((s) => (
+                    {catalog.slots.filter(s => date && validBookingTime(date, s.startMinute, catalog.settings.leadHours, catalog.settings.maxDays)).map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.label}
                       </option>
