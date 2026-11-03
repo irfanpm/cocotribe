@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import {groupProducts} from "@/lib/product-groups";
+import {VariantCard} from "./variant-card";
 import { useState } from "react";
 import {
   CalendarDays,
@@ -215,50 +217,7 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
           </div>
           <div className="ref-product-grid">
             {!products.length && <p role="status">{t("No products available right now.", "ഇപ്പോൾ ഉൽപ്പന്നങ്ങൾ ലഭ്യമല്ല.")}</p>}
-            {products.map((item) => {
-              const en = item.p?.nameEn || item.en,
-                ml = item.p?.nameMl || item.ml;
-              return (
-                <article className="ref-product-card" key={en}>
-                  <Link
-                    href={item.p ? `/products/${item.p.slug}` : "/services"}
-                  >
-                    <img src={item.p.image} alt={t(en, ml)} className="ref-product-photo" loading="lazy" decoding="async" width={360} height={180} />
-                  </Link>
-                  <div>
-                    <h3>
-                      <Link
-                        href={item.p ? `/products/${item.p.slug}` : "/services"}
-                      >
-                        {t(en, ml)}
-                      </Link>
-                    </h3>
-                    <p>{t(item.p?.descriptionEn || item.desc, item.p?.descriptionMl || item.descMl)}</p>
-                    <strong>
-                      {item.price
-                        ? money(item.p?.price || item.price, lang)
-                        : t("Custom Pricing", "ആവശ്യാനുസരണമുള്ള വില")}
-                    </strong>
-                    <div className="product-actions">
-                      <Link
-                        className="button ref-card-button"
-                        href={`/book?product=${item.p.id}`}
-                      >
-                        <ShoppingCart size={15} />
-                        {t("Book Now", "ബുക്ക് ചെയ്യാം")}
-                      </Link>
-                      <WhatsApp
-                        number={s.whatsapp}
-                        product={t(en, ml)}
-                        className="button outline ref-card-button"
-                      >
-                        {t("Enquiry", "അന്വേഷണം")}
-                      </WhatsApp>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+            {groupProducts(catalog.products).map(variants => <VariantCard key={variants[0].id} variants={variants} number={s.whatsapp} reference />)}
           </div>
         </div>
         <div className="ref-services">

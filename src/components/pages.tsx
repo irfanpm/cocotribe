@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import {groupProducts, productFamily} from "@/lib/product-groups";
+import {VariantCard} from "./variant-card";
 import { useState } from "react";
 import { MapPin, Phone, Mail, Clock, Check, ArrowRight } from "lucide-react";
 import { useLanguage } from "./language";
@@ -30,14 +32,7 @@ export function Products({ catalog }: { catalog: Catalog }) {
         </p>
       </Heading>
       <div className="product-grid catalog-grid">
-        {catalog.products.map((p) => (
-          <ProductCard
-            key={p.id}
-            p={p}
-            number={catalog.settings.whatsapp}
-            demo={catalog.demo}
-          />
-        ))}
+        {groupProducts(catalog.products).map(variants => <VariantCard key={variants[0].id} variants={variants} number={catalog.settings.whatsapp} />)}
       </div>
       {!catalog.products.length && (
         <p className="notice">
@@ -51,13 +46,16 @@ export function Products({ catalog }: { catalog: Catalog }) {
   );
 }
 export function ProductDetail({
-  product: p,
+  product: initialProduct,
   catalog,
 }: {
   product: ProductView;
   catalog: Catalog;
 }) {
   const { t, lang } = useLanguage();
+  const variants = catalog.products.filter(item => productFamily(item) === productFamily(initialProduct));
+  const [selectedId, setSelectedId] = useState(initialProduct.id);
+  const p = variants.find(item => item.id === selectedId) || initialProduct;
   const [quantity, setQuantity] = useState(1);
   const [date, setDate] = useState("");
   return (
@@ -77,10 +75,15 @@ export function ProductDetail({
             {t("CAREFULLY SOURCED", "കരുതലോടെ തിരഞ്ഞെടുത്തത്")}
           </p>
           <h1>{t(p.nameEn, p.nameMl)}</h1>
+          {variants.length > 1 && <label className="variant-field">{t("Choose pack / size", "പാക്ക് / അളവ് തിരഞ്ഞെടുക്കുക")}
+            <select value={p.id} onChange={e=>{setSelectedId(e.target.value);setQuantity(1);}}>
+              {variants.map(item=><option key={item.id} value={item.id}>{t(item.nameEn,item.nameMl)} — {money(item.price,lang)}</option>)}
+            </select>
+          </label>}
           <p className="detail-price">
             {money(p.price, lang)}{" "}
             <small>
-              {t("per piece", "ഒരു എണ്ണത്തിന്")}
+              {t("per selected pack", "തിരഞ്ഞെടുത്ത പാക്കിന്")}
               {catalog.demo ? t(" · Sample price", " · മാതൃകാ വില") : ""}
             </small>
           </p>

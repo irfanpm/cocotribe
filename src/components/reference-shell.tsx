@@ -34,6 +34,7 @@ export function Shell({
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const admin = pathname.startsWith("/admin");
+  if (admin) return <div className="admin-site"><a href="#main" className="skip">Skip to content</a><main id="main">{children}</main></div>;
   return (
     <div className="reference-site">
       <CatalogSync />

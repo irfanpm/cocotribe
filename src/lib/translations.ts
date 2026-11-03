@@ -1,4 +1,6 @@
 export const translations: Record<string, {ta: string; hi: string}> = {
+ "per selected pack": {ta:"தேர்ந்தெடுத்த பேக்கிற்கு",hi:"प्रति चयनित पैक"},
+ "Choose pack / size": {ta:"பேக் / அளவைத் தேர்ந்தெடுக்கவும்",hi:"पैक / आकार चुनें"},
   "This product is currently unavailable for booking. Please enquire about availability.": {ta:"இந்தப் பொருள் தற்போது முன்பதிவுக்குக் கிடைக்கவில்லை. கிடைப்பதைப் பற்றி விசாரிக்கவும்.",hi:"यह उत्पाद अभी बुकिंग के लिए उपलब्ध नहीं है। उपलब्धता के बारे में पूछें।"},
 
   "Pooja Coconut · Mini Pack (2 pcs)": {

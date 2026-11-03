@@ -4,7 +4,7 @@ import Link from "next/link";
 import { CoconutLoader } from "./coconut-loader";
 import { sampleProducts, sampleSlots, sampleFaqs, sampleSettings } from "@/lib/demo";
 import { useRouter } from "next/navigation";
-import { LogOut, Plus, Search, LockKeyhole, ArrowRight, X } from "lucide-react";
+import { LogOut, Plus, Search, LockKeyhole, ArrowRight, X, Menu, LayoutDashboard, Package, CalendarDays, CircleHelp, Settings, Inbox, ExternalLink, Leaf } from "lucide-react";
 import { money } from "./ui";
 import type { ProductView, SlotView, FaqView, SettingsView } from "@/lib/demo";
 type AdminOrder = {
@@ -193,6 +193,7 @@ const previewOrders: AdminOrder[] = ["CONFIRMED", "READY", "PENDING"].map((statu
 }));
 export function AdminDashboard({ preview = false }: { preview?: boolean }) {
   const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [data, setData] = useState<AdminData | null>(null),
     [tab, setTab] = useState("Orders"),
     [search, setSearch] = useState(""),
@@ -325,12 +326,27 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
     }
   }
   return (
-    <section className="admin-wrap">
+    <section className="admin-wrap admin-workspace">
+      <aside className={sidebarOpen ? "admin-sidebar open" : "admin-sidebar"} id="admin-sidebar">
+        <Link href="/" className="admin-logo"><Leaf size={30}/><span>COCOTRIBE<small>BUSINESS ADMIN</small></span></Link>
+        <p className="admin-nav-label">WORKSPACE</p>
+        <nav aria-label="Admin sections">
+          {[["Orders",LayoutDashboard],["Products",Package],["Time slots",CalendarDays],["FAQs",CircleHelp],["Website settings",Settings],["Messages",Inbox]].map(([name,Icon]) => {
+            const label = name as string;
+            const NavIcon = Icon as typeof LayoutDashboard;
+            return <button type="button" key={label} className={tab === label ? "active" : ""} aria-current={tab === label ? "page" : undefined} onClick={()=>{setTab(label);setNotice("");setSidebarOpen(false);}}><NavIcon size={20}/>{label}</button>;
+          })}
+        </nav>
+        <div className="admin-sidebar-bottom"><Link href="/"><ExternalLink size={18}/>View website</Link><p>COCOTRIBE Operations<br/>Guruvayur, Kerala</p></div>
+      </aside>
+      {sidebarOpen && <button className="admin-overlay" aria-label="Close navigation" onClick={()=>setSidebarOpen(false)}/>}
+      <div className="admin-mobile-bar"><button className="button outline" aria-controls="admin-sidebar" aria-expanded={sidebarOpen} onClick={()=>setSidebarOpen(!sidebarOpen)}><Menu size={20}/> Menu</button><strong>COCOTRIBE ADMIN</strong></div>
       {preview && <p className="notice">Admin preview · Fictional sample data only. Explore all tabs and editors; saving is disabled. <Link href="/">Back to website</Link></p>}
       <div className="section-heading">
         <div>
           <p className="eyebrow">COCOTRIBE · OPERATIONS</p>
-          <h1>Your business, at a glance.</h1>
+          <h1>{tab === "Orders" ? "Bookings overview" : tab}</h1>
+          <p className="admin-page-description">{tab === "Orders" ? "Manage bookings, track payments and prepare upcoming orders." : "Manage your " + tab.toLowerCase() + " in one place."}</p>
         </div>
         <button
           className="button outline"
@@ -363,7 +379,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
         error ? null : <CoconutLoader />
       ) : (
         <>
-          <div className="stats">
+          {tab === "Orders" && <div className="stats">
             {[
               ["todays", "Today’s bookings"],
               ["upcoming", "Upcoming bookings"],
@@ -377,28 +393,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                 <strong>{data.stats[key]}</strong>
               </div>
             ))}
-          </div>
-          <nav className="admin-tabs" aria-label="Admin sections">
-            {[
-              "Orders",
-              "Products",
-              "Time slots",
-              "FAQs",
-              "Website settings",
-              "Messages",
-            ].map((name) => (
-              <button
-                key={name}
-                className={tab === name ? "active" : ""}
-                onClick={() => {
-                  setTab(name);
-                  setNotice("");
-                }}
-              >
-                {name}
-              </button>
-            ))}
-          </nav>
+          </div>}
           {tab === "Orders" && (
             <>
               <div className="admin-filters">
