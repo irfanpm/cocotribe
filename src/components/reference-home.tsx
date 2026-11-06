@@ -60,28 +60,8 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
     p, en: p.nameEn, ml: p.nameMl, desc: p.descriptionEn,
     descMl: p.descriptionMl, price: p.price,
   }));
-  const faqs = [
-    {
-      en: "How early can I book coconuts for my Guruvayur visit?",
-      ml: "ഗുരുവായൂർ യാത്രയ്ക്ക് എത്ര നേരത്തേ തേങ്ങ ബുക്ക് ചെയ്യാം?",
-      answer: catalog.faqs[0],
-    },
-    {
-      en: "Can I choose a specific time for delivery or collection?",
-      ml: "വിതരണത്തിനോ ശേഖരണത്തിനോ സമയം തിരഞ്ഞെടുക്കാമോ?",
-      answer: null,
-    },
-    {
-      en: "Do you supply in bulk for events?",
-      ml: "ചടങ്ങുകൾക്ക് മൊത്തമായി വിതരണം ചെയ്യുമോ?",
-      answer: catalog.faqs[6],
-    },
-    {
-      en: "What payment methods are available?",
-      ml: "ഏതെല്ലാം പേയ്‌മെന്റ് മാർഗങ്ങൾ ലഭ്യമാണ്?",
-      answer: catalog.faqs[2],
-    },
-  ];
+  // The questions admins actually publish, so a question can never show another one's answer.
+  const faqs = catalog.faqs.slice(0, 4);
   return (
     <div className="reference-home">
       <section className="ref-hero">
@@ -428,23 +408,16 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
         </div>
         <div className="ref-faq-items">
           {faqs.map((f, i) => (
-            <div key={f.en}>
+            <div key={f.id}>
               <button
                 aria-expanded={openFaq === i}
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
               >
-                {t(f.en, f.ml)}
-                <span>{openFaq === i ? "−" : "+"}</span>
+                {t(f.questionEn, f.questionMl)}
+                <span aria-hidden="true">{openFaq === i ? "−" : "+"}</span>
               </button>
               {openFaq === i && (
-                <p className="ref-faq-answer">
-                  {f.answer
-                    ? t(f.answer.answerEn, f.answer.answerMl)
-                    : t(
-                        "Yes. Choose an available time slot when you book. Our team will confirm collection or delivery arrangements.",
-                        "അതെ. ബുക്ക് ചെയ്യുമ്പോൾ ലഭ്യമായ സമയം തിരഞ്ഞെടുക്കാം. ശേഖരണമോ വിതരണമോ ഞങ്ങളുടെ ടീം സ്ഥിരീകരിക്കും.",
-                      )}
-                </p>
+                <p className="ref-faq-answer">{t(f.answerEn, f.answerMl)}</p>
               )}
             </div>
           ))}

@@ -1,5 +1,6 @@
-/** Opt-in live Supabase check using temporary fixtures; cleans up only its own records. */
+/** Opt-in check using temporary fixtures; cleans up only its own records. Refuses to run outside koko_test. */
 import assert from "node:assert/strict";
+assert.match(process.env.DATABASE_URL || "", /koko_test/, "Test bookings must never be created in the live database.");
 import { randomUUID, randomBytes } from "node:crypto";
 import { hash as passwordHash } from "bcryptjs";
 import { PrismaClient } from "@prisma/client";

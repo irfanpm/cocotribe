@@ -10,7 +10,10 @@ export async function POST(request: Request) {
       where: { id: admin.id },
       data: { sessionVersion: { increment: 1 } },
     });
-    const res = NextResponse.json({ ok: true });
+    await db.auditLog.create({
+      data: { adminId: admin.id, action: "logout", entityId: admin.id },
+    });
+    const res = NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
     res.cookies.delete(cookieName);
     return res;
   } catch (e) {

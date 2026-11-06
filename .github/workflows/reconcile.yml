@@ -1,0 +1,21 @@
+# Releases unpaid Razorpay reservations every 10 minutes. A failed run emails the repository
+# owner and shows red in the Actions tab. Needs repository secrets APP_URL and CRON_SECRET.
+# On Vercel Pro you can use vercel.json "*/5 * * * *" instead and disable this workflow.
+name: Reconcile payments
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Call the reconcile endpoint
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 90 --retry 2 --retry-all-errors \
+            -X POST -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/reconcile"

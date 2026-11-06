@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { compare } from "bcryptjs";
 import { z } from "zod";
 import { db, isDemo } from "@/lib/db";
-import { body, sameOrigin, fail, AppError } from "@/lib/http";
+import { body, sameOrigin, fail, AppError, clientIp } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
 import { createSession, cookieName } from "@/lib/auth";
 export async function POST(request: Request) {
@@ -15,7 +15,10 @@ export async function POST(request: Request) {
         password: z.string().min(1).max(200),
       })
       .parse(await body(request));
-    await rateLimit("login-account", data.email, 8);
+    // The per-address limit stops guessing; the higher account limit means a stranger
+    // guessing from one address cannot lock the real owner out.
+    await rateLimit("login-ip", clientIp(request), 8);
+    await rateLimit("login-account", data.email, 30);
     await rateLimit("login-global", "all", 80);
     const admin = await db.admin.findUnique({ where: { email: data.email } });
     const valid = await compare(
@@ -24,7 +27,10 @@ export async function POST(request: Request) {
         "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxRRHxGAOoCiXO6Yw.H2LDIWHAa",
     );
     if (!admin || !valid) throw new AppError("INVALID_CREDENTIALS", 401);
-    const res = NextResponse.json({ ok: true });
+    await db.auditLog.create({
+      data: { adminId: admin.id, action: "login", entityId: admin.id },
+    });
+    const res = NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
     res.cookies.set(
       cookieName,
       await createSession(admin.id, admin.sessionVersion),

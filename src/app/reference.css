@@ -134,7 +134,7 @@
 .ref-hero {
   height: 296px;
   position: relative;
-  background: #eee9db url("/images/reference-hero.jpg") center 54% / cover
+  background: #eee9db url("/images/reference-hero.webp") center 54% / cover
     no-repeat;
   isolation: isolate;
 }

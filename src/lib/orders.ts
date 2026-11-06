@@ -2,28 +2,39 @@ import { Prisma } from "@prisma/client";
 import { createHmac, randomBytes } from "node:crypto";
 import { db } from "./db";
 import { AppError } from "./http";
+import { reportIssue } from "./monitor";
 import { hash } from "./security";
 import { bookingSchema, validBookingTime } from "./validation";
 import type { z } from "zod";
+// P2034 serialization conflict, P2028 transaction start timeout under load, and P2002
+// when a concurrent retry of the same request wins the unique key: the next attempt
+// sees the committed row and returns it, which is what makes retries idempotent.
+const RETRYABLE = new Set(["P2034", "P2028", "P2002"]);
+const ATTEMPTS = 6;
 export async function serial<T>(
   fn: (tx: Prisma.TransactionClient) => Promise<T>,
 ): Promise<T> {
-  for (let n = 0; n < 4; n++) {
+  for (let n = 0; ; n++) {
     try {
       return await db.$transaction(fn, {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: 5000,
+        timeout: 10000,
       });
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === "P2034" &&
-        n < 3
-      )
+        RETRYABLE.has(e.code) &&
+        n < ATTEMPTS - 1
+      ) {
+        await new Promise((r) => setTimeout(r, Math.random() * 40 * 2 ** n));
         continue;
+      }
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2034")
+        throw new AppError("TRY_AGAIN", 409);
       throw e;
     }
   }
-  throw new AppError("TRY_AGAIN", 409);
 }
 export async function createBooking(data: z.infer<typeof bookingSchema>) {
   const secret = process.env.SESSION_SECRET;
@@ -89,6 +100,47 @@ export async function createBooking(data: z.infer<typeof bookingSchema>) {
   });
   return { order, token };
 }
+/**
+ * Attaches the Razorpay order after the reservation is committed, so a slow gateway never
+ * holds a database connection. If two retries race, the conditional update picks one
+ * winner; the loser's unused gateway order can never be paid because nobody receives it.
+ */
+export async function ensureGatewayOrder(
+  order: Awaited<ReturnType<typeof createBooking>>["order"],
+  createGatewayOrder: (o: { total: number; bookingId: string }) => Promise<string>,
+) {
+  if (order.razorpayOrderId) return order;
+  const gatewayId = await createGatewayOrder(order);
+  await db.order.updateMany({
+    where: { id: order.id, razorpayOrderId: null },
+    data: { razorpayOrderId: gatewayId },
+  });
+  return db.order.findUniqueOrThrow({ where: { id: order.id } });
+}
+/** Releases an unpaid online reservation, re-checking inside the transaction in case it was just paid. */
+export async function expireReservation(id: string, now = new Date()) {
+  return serial(async (tx) => {
+    const o = await tx.order.findUniqueOrThrow({ where: { id } });
+    if (
+      o.method !== "RAZORPAY" ||
+      o.status !== "PENDING" ||
+      o.paymentStatus !== "PENDING" ||
+      !o.reservedUntil ||
+      o.reservedUntil >= now
+    )
+      return false;
+    if (!o.stockReleased)
+      await tx.product.update({
+        where: { id: o.productId },
+        data: { stock: { increment: o.quantity } },
+      });
+    await tx.order.update({
+      where: { id },
+      data: { status: "CANCELLED", stockReleased: true },
+    });
+    return true;
+  });
+}
 export async function cancelOrder(id: string) {
   return serial(async (tx) => {
     const o = await tx.order.findUniqueOrThrow({ where: { id } });
@@ -120,8 +172,12 @@ export async function markCaptured(
     if (!o) throw new AppError("NOT_FOUND", 404);
     if (o.total !== amount || currency !== "INR")
       throw new AppError("PAYMENT_MISMATCH", 409);
-    if (["PAID", "REFUND_REQUIRED", "REFUNDED"].includes(o.paymentStatus))
+    if (["PAID", "REFUND_REQUIRED", "REFUNDED"].includes(o.paymentStatus)) {
+      // A second captured payment on one order means the customer was charged twice.
+      if (o.razorpayPaymentId && o.razorpayPaymentId !== paymentId)
+        await reportIssue("payments", "SECOND_CAPTURE_NEEDS_REFUND", { bookingId: o.bookingId });
       return o;
+    }
     return tx.order.update({
       where: { id: o.id },
       data: {
@@ -140,6 +196,19 @@ export async function getPrivateOrder(id: string, token: string) {
   });
   if (!o) throw new AppError("NOT_FOUND", 404);
   return o;
+}
+export function gatewayDetails(o: Awaited<ReturnType<typeof getPrivateOrder>>) {
+  if (
+    o.method !== "RAZORPAY" ||
+    o.status !== "PENDING" ||
+    o.paymentStatus !== "PENDING" ||
+    !o.razorpayOrderId ||
+    !o.reservedUntil ||
+    o.reservedUntil <= new Date() ||
+    !process.env.RAZORPAY_KEY_ID
+  )
+    return null;
+  return { key: process.env.RAZORPAY_KEY_ID, orderId: o.razorpayOrderId, amount: o.total };
 }
 export function publicOrder(o: Awaited<ReturnType<typeof getPrivateOrder>>) {
   return {

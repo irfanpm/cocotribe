@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fail } from "@/lib/http";
 import { indiaDate } from "@/lib/validation";
+import { RECONCILE_JOB } from "@/lib/reconcile";
 export async function GET(request: Request) {
   try {
     await requireAdmin();
@@ -49,6 +50,9 @@ export async function GET(request: Request) {
       settings,
       messages,
       groups,
+      audit,
+      admins,
+      job,
     ] = await Promise.all([
       db.order.findMany({
         where,
@@ -71,8 +75,12 @@ export async function GET(request: Request) {
           COUNT(*) FILTER (WHERE "paymentStatus" = 'PAID')::int AS paid,
           COUNT(*) FILTER (WHERE method = 'DELIVERY')::int AS delivery
         FROM "Order"`,
+      db.auditLog.findMany({ take: 100, orderBy: { createdAt: "desc" } }),
+      db.admin.findMany({ select: { id: true, email: true } }),
+      db.jobRun.findUnique({ where: { name: RECONCILE_JOB } }),
     ]);
     const stats = groups[0];
+    const emails = new Map(admins.map((a) => [a.id, a.email]));
     return NextResponse.json(
       {
         orders,
@@ -84,6 +92,8 @@ export async function GET(request: Request) {
         settings,
         messages,
         stats,
+        audit: audit.map((a) => ({ ...a, adminEmail: emails.get(a.adminId) || "Removed admin" })),
+        reconcile: job && { lastSuccessAt: job.lastSuccessAt, lastError: job.lastError },
       },
       { headers: { "Cache-Control": "no-store" } },
     );

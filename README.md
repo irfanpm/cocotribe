@@ -1,12 +1,14 @@
 # COCOTRIBE
 
-A responsive English/Malayalam coconut pre-booking application built with **Next.js App Router, React, TypeScript, Tailwind CSS, PostgreSQL, Prisma and Razorpay**. Includes original coconut imagery, locally served English/Malayalam fonts and a protected administration area.
+A responsive coconut pre-booking application in English, Malayalam, Tamil and Hindi, built with **Next.js App Router, React, TypeScript, Tailwind CSS, PostgreSQL, Prisma and Razorpay**. Includes coconut imagery, self-hosted fonts and a protected administration area.
+
+**For hosting, environment variables, migrations, Razorpay, scheduled reconciliation and redeploys, follow [DEPLOYMENT.md](DEPLOYMENT.md).** Where it differs from older notes below, DEPLOYMENT.md is current.
 
 ## Delivery status
 
-The full source, database migration, seed, booking backend, admin tools and payment integration are included. The default preview is deliberately in **DEMO_MODE**: sample prices are labelled and no real bookings, contact submissions or payments are accepted. This is not yet a live merchant deployment.
+Without configuration the app runs in **DEMO_MODE**: no real bookings, contact submissions or payments are accepted. Production sets `DEMO_MODE=false`.
 
-Confirmed contact: **+91 94966 69360**, used for phone and WhatsApp. Confirm the address/collection point, email, hours, actual prices, stock, refund terms and delivery arrangements before launch. The seed uses ₹40 and ₹120 as sample prices, not quotations. All default products are sold per piece; add a unit model before selling copra by kilogram.
+Confirmed contact: **+91 94966 69360**, used for phone and WhatsApp. Confirm the address/collection point, email, hours, refund terms and delivery arrangements with the owner. Current prices are listed in [PRODUCT-CATALOG.md](PRODUCT-CATALOG.md).
 
 ## Quick start: visual preview
 

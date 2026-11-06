@@ -35,6 +35,7 @@ async function main() {
     data: { label: "Test 09:00", startMinute: 540, capacity: 10 },
   });
   const webhookSecret = randomBytes(32).toString("hex");
+  const cronSecret = randomBytes(32).toString("hex");
   const server = spawn(
     process.execPath,
     [
@@ -52,6 +53,10 @@ async function main() {
         APP_URL: origin,
         SESSION_SECRET: randomBytes(48).toString("hex"),
         RAZORPAY_WEBHOOK_SECRET: webhookSecret,
+        CRON_SECRET: cronSecret,
+        // Never reach the real gateway from these tests.
+        RAZORPAY_KEY_ID: "",
+        RAZORPAY_KEY_SECRET: "",
       },
       stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
@@ -95,7 +100,7 @@ async function main() {
     for (const path of [
       "/",
       "/products",
-      "/products/fresh-coconut",
+      `/products/http-${tag}`,
       "/book",
       "/services",
       "/about",
@@ -299,6 +304,75 @@ async function main() {
         .paymentStatus,
       "PAID",
     );
+    // A correctly signed event for an unknown order is accepted so Razorpay does not disable the webhook.
+    const unknown = payload.replaceAll(`order_${tag}`, "order_unknown");
+    const unknownResponse = await fetch(origin + "/api/payments/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-razorpay-signature": createHmac("sha256", webhookSecret).update(unknown).digest("hex"),
+      },
+      body: unknown,
+    });
+    assert.equal(unknownResponse.status, 200);
+
+    // Scheduled job and health check.
+    assert.equal((await fetch(origin + "/api/cron/reconcile")).status, 401);
+    assert.equal(
+      (await fetch(origin + "/api/cron/reconcile", { headers: { Authorization: "Bearer wrong" } })).status,
+      401,
+    );
+    const cron = await fetch(origin + "/api/cron/reconcile", {
+      headers: { Authorization: `Bearer ${cronSecret}` },
+    });
+    assert.equal(cron.status, 200);
+    assert.equal((await cron.json()).failed, 0);
+    const health = await fetch(origin + "/api/health");
+    assert.equal(health.status, 200);
+    assert.deepEqual(await health.json(), { status: "ok" }, "Public health shows no details");
+    const detailed = await fetch(origin + "/api/health", {
+      headers: { Authorization: `Bearer ${cronSecret}` },
+    });
+    assert.ok((await detailed.json()).reconcile.lastSuccessAt);
+
+    // Privacy: no public caching, no secrets in pages, crawlers kept out.
+    for (const path of ["/api/admin/data", "/api/health", "/admin/login", "/book", "/booking/KT-TEST"]) {
+      const response = await fetch(origin + path);
+      assert.match(response.headers.get("cache-control") || "", /no-store/, `${path} must not be cached`);
+      assert.doesNotMatch(response.headers.get("cache-control") || "", /public/, path);
+    }
+    const home = await fetch(origin + "/");
+    assert.match(home.headers.get("content-security-policy") || "", /frame-ancestors 'none'/);
+    assert.match(home.headers.get("strict-transport-security") || "", /max-age=/);
+    const html = await home.text();
+    for (const secret of [webhookSecret, cronSecret, process.env.DATABASE_URL || "unset"])
+      assert.equal(html.includes(secret), false);
+    assert.match(await (await fetch(origin + "/robots.txt")).text(), /Disallow: \/admin/);
+
+    // Stock safety: a stale screen cannot overwrite a newer reservation, and price edits keep stock.
+    const adminProduct = dash.products.find((p: { id: string }) => p.id === product.id);
+    const stockNow = (await db.product.findUniqueOrThrow({ where: { id: product.id } })).stock;
+    assert.equal(
+      (await post("/api/admin/manage", { kind: "stock", id: product.id, data: { stock: 99, expected: stockNow + 1 } }, cookie)).status,
+      409,
+    );
+    const { id: _id, createdAt: _createdAt, ...productFields } = adminProduct;
+    const edit = await post(
+      "/api/admin/manage",
+      { kind: "product", id: product.id, data: { ...productFields, image: "/images/products/pooja-coconut.webp", price: 4500, stock: 999 } },
+      cookie,
+    );
+    assert.equal(edit.status, 200, "Products with images in sub-folders can be edited");
+    const edited = await db.product.findUniqueOrThrow({ where: { id: product.id } });
+    assert.equal(edited.price, 4500);
+    assert.equal(edited.stock, stockNow, "Editing a product never changes stock");
+    const audit = await db.auditLog.findFirst({
+      where: { adminId: admin.id, action: "update:product" },
+      orderBy: { createdAt: "desc" },
+    });
+    assert.deepEqual((audit?.details as Record<string, unknown>).price, { from: 4000, to: 4500 });
+    assert.equal(await db.auditLog.count({ where: { adminId: admin.id, action: "login" } }), 1);
+
     assert.equal((await post("/api/admin/logout", {}, cookie)).status, 200);
     assert.equal(
       (await fetch(origin + "/api/admin/data", { headers: { Cookie: cookie } }))

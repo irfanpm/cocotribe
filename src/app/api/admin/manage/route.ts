@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { body, sameOrigin, fail, AppError } from "@/lib/http";
 import {
   productSchema,
@@ -11,14 +11,15 @@ import {
   settingsSchema,
 } from "@/lib/validation";
 import { serial } from "@/lib/orders";
-const transitions: Record<string, string[]> = {
-  PENDING: ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["PREPARING", "CANCELLED"],
-  PREPARING: ["READY", "CANCELLED"],
-  READY: ["COMPLETED", "CANCELLED"],
-  COMPLETED: [],
-  CANCELLED: [],
-};
+import { orderChangeError } from "@/lib/order-rules";
+/** Field-level before/after values for the audit trail. Only submitted fields are compared. */
+function changes(before: object | null, after: object) {
+  const old = (before || {}) as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(after))
+    if (old[key] !== value) out[key] = { from: old[key] ?? null, to: value };
+  return out;
+}
 export async function POST(request: Request) {
   try {
     sameOrigin(request);
@@ -33,31 +34,57 @@ export async function POST(request: Request) {
     const { kind, id } = input;
     const entity = await serial(async (tx) => {
       let saved: unknown = null;
+      let details: Record<string, unknown> = {};
       if (kind === "stock") {
         if (!id) throw new AppError("INVALID_INPUT");
-        const data = z.object({stock: z.number().int().min(0).max(1000000)}).parse(input.data);
-        saved = await tx.product.update({where:{id}, data});
+        const { stock, expected } = z
+          .object({
+            stock: z.number().int().min(0).max(1000000),
+            expected: z.number().int().optional(),
+          })
+          .parse(input.data);
+        const before = await tx.product.findUniqueOrThrow({ where: { id } });
+        // A booking may have reserved stock since the screen loaded. Never overwrite it silently.
+        if (expected !== undefined && before.stock !== expected)
+          throw new AppError("STOCK_CHANGED", 409);
+        saved = await tx.product.update({ where: { id }, data: { stock } });
+        details = changes(before, { stock });
       }
       if (kind === "product") {
-        const data = productSchema.parse(input.data);
-        if (id) saved = await tx.product.update({ where: { id }, data });
-        else saved = await tx.product.create({ data });
+        if (id) {
+          // Stock has its own guarded form. A price edit must not reset reserved stock.
+          const data = productSchema.omit({ stock: true }).parse(input.data);
+          const before = await tx.product.findUniqueOrThrow({ where: { id } });
+          saved = await tx.product.update({ where: { id }, data });
+          details = changes(before, data);
+        } else {
+          const data = productSchema.parse(input.data);
+          saved = await tx.product.create({ data });
+          details = changes(null, data);
+        }
       }
       if (kind === "slot") {
         const data = slotSchema.parse(input.data);
-        if (id) saved = await tx.timeSlot.update({ where: { id }, data });
-        else saved = await tx.timeSlot.create({ data });
+        const before = id ? await tx.timeSlot.findUniqueOrThrow({ where: { id } }) : null;
+        saved = id
+          ? await tx.timeSlot.update({ where: { id }, data })
+          : await tx.timeSlot.create({ data });
+        details = changes(before, data);
       }
       if (kind === "faq") {
         const data = faqSchema.parse(input.data);
-        if (id) saved = await tx.faq.update({ where: { id }, data });
-        else saved = await tx.faq.create({ data });
+        const before = id ? await tx.faq.findUniqueOrThrow({ where: { id } }) : null;
+        saved = id
+          ? await tx.faq.update({ where: { id }, data })
+          : await tx.faq.create({ data });
+        details = changes(before, data);
       }
-      if (kind === "settings")
-        saved = await tx.settings.update({
-          where: { id: "main" },
-          data: settingsSchema.parse(input.data),
-        });
+      if (kind === "settings") {
+        const data = settingsSchema.parse(input.data);
+        const before = await tx.settings.findUniqueOrThrow({ where: { id: "main" } });
+        saved = await tx.settings.update({ where: { id: "main" }, data });
+        details = changes(before, data);
+      }
       if (kind === "order") {
         if (!id) throw new AppError("INVALID_INPUT");
         const data = z
@@ -79,32 +106,10 @@ export async function POST(request: Request) {
           })
           .parse(input.data);
         const o = await tx.order.findUniqueOrThrow({ where: { id } });
-        if (
-          data.status !== o.status &&
-          !transitions[o.status].includes(data.status)
-        )
-          throw new AppError("INVALID_STATUS", 409);
-        if (
-          o.method === "RAZORPAY" &&
-          data.paymentStatus !== o.paymentStatus &&
-          !(
-            o.paymentStatus === "REFUND_REQUIRED" &&
-            data.paymentStatus === "REFUNDED"
-          )
-        )
-          throw new AppError("PAYMENT_MANAGED_BY_GATEWAY", 409);
-        if (o.paymentStatus === "PAID" && data.paymentStatus === "PENDING")
-          throw new AppError("INVALID_STATUS", 409);
-        if (data.status === "COMPLETED" && data.paymentStatus !== "PAID")
-          throw new AppError("PAYMENT_PENDING", 409);
-        if (
-          o.method === "RAZORPAY" &&
-          data.status !== "PENDING" &&
-          data.status !== "CANCELLED" &&
-          data.paymentStatus !== "PAID"
-        )
-          throw new AppError("PAYMENT_PENDING", 409);
-        if (data.status === "CANCELLED" && !o.stockReleased) {
+        const problem = orderChangeError(o, data);
+        if (problem) throw new AppError(problem, 409);
+        const cancelling = data.status === "CANCELLED" && !o.stockReleased;
+        if (cancelling) {
           await tx.product.update({
             where: { id: o.productId },
             data: { stock: { increment: o.quantity } },
@@ -119,19 +124,24 @@ export async function POST(request: Request) {
             stockReleased: data.status === "CANCELLED" || o.stockReleased,
           },
         });
+        details = changes(o, data);
       }
       await tx.auditLog.create({
         data: {
           adminId: admin.id,
           action: `update:${kind}`,
-          entityId: id || "new",
+          entityId: id || (saved as { id?: string } | null)?.id || "new",
+          details: details as Prisma.InputJsonValue,
         },
       });
       return saved;
     });
-    revalidateTag("catalog", {expire: 0});
+    revalidateTag("catalog", { expire: 0 });
     revalidatePath("/", "layout");
-    return NextResponse.json({ ok: true, entity });
+    return NextResponse.json(
+      { ok: true, entity },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (e) {
     return fail(e);
   }

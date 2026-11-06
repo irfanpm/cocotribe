@@ -4,8 +4,9 @@ import Link from "next/link";
 import { CoconutLoader } from "./coconut-loader";
 import { sampleProducts, sampleSlots, sampleFaqs, sampleSettings } from "@/lib/demo";
 import { useRouter } from "next/navigation";
-import { LogOut, Plus, Search, LockKeyhole, ArrowRight, X, Menu, LayoutDashboard, Package, CalendarDays, CircleHelp, Settings, Inbox, ExternalLink, Leaf } from "lucide-react";
+import { LogOut, Plus, Search, LockKeyhole, ArrowRight, X, Menu, LayoutDashboard, Package, CalendarDays, CircleHelp, Settings, Inbox, ExternalLink, Leaf, History } from "lucide-react";
 import { money } from "./ui";
+import { nextOrderStatuses, nextPaymentStatuses } from "@/lib/order-rules";
 import type { ProductView, SlotView, FaqView, SettingsView } from "@/lib/demo";
 type AdminOrder = {
   id: string;
@@ -39,6 +40,15 @@ type AdminData = {
     createdAt: string;
   }[];
   stats: Record<string, number>;
+  audit: {
+    id: string;
+    adminEmail: string;
+    action: string;
+    entityId: string;
+    details: Record<string, { from: unknown; to: unknown }> | null;
+    createdAt: string;
+  }[];
+  reconcile?: { lastSuccessAt: string | null; lastError: string | null } | null;
 };
 export function AdminLogin({ demo }: { demo: boolean }) {
   const [busy, setBusy] = useState(false),
@@ -241,6 +251,14 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
       previous?.focus();
     };
   }, [!!editor, !!selected]);
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const close = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSidebarOpen(false);
+    };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [sidebarOpen]);
   const loadSequence = useRef(0);
   const [refreshing, setRefreshing] = useState(false);
   const load = useCallback(async () => {
@@ -249,7 +267,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
     if (preview) {
       setRefreshing(false);
       const orders = previewOrders.filter(o => (!search || `${o.name} ${o.bookingId} ${o.phone}`.toLowerCase().includes(search.toLowerCase())) && (!date || o.date === date) && (!payment || o.paymentStatus === payment) && (!status || o.status === status));
-      setData({orders, count: orders.length, page: 0, products: sampleProducts, slots: sampleSlots, faqs: sampleFaqs, settings: sampleSettings, messages: [{id:"sample-message",name:"Sample Customer",phone:"0000000000",message:"Sample enquiry: Do you supply coconuts for family events?",createdAt:new Date().toISOString()}],stats:{todays:3,upcoming:3,total:3,pending:2,paid:1,delivery:2}});
+      setData({orders, count: orders.length, page: 0, products: sampleProducts, slots: sampleSlots, faqs: sampleFaqs, settings: sampleSettings, messages: [{id:"sample-message",name:"Sample Customer",phone:"0000000000",message:"Sample enquiry: Do you supply coconuts for family events?",createdAt:new Date().toISOString()}],stats:{todays:3,upcoming:3,total:3,pending:2,paid:1,delivery:2},audit:[]});
       return;
     }
     try {
@@ -290,11 +308,20 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kind, id, data: values }),
       });
+      if (r.status === 401) {
+        router.replace("/admin/login");
+        return;
+      }
       const result = await r.json();
-      if (!r.ok)
+      if (!r.ok) {
+        if (result.error === "STOCK_CHANGED") await load();
         throw new Error(
           result.error === "INVALID_INPUT"
             ? "Please check all fields. Both languages are required."
+            : result.error === "STOCK_CHANGED"
+              ? "A customer booked this product while you were editing. The latest stock is now shown; please check it and save again."
+            : result.error === "CONFLICT"
+              ? "That URL slug is already used by another product."
             : result.error === "PAYMENT_MANAGED_BY_GATEWAY"
               ? "Online payment status is verified by Razorpay. Refunds must be processed in Razorpay first."
               : result.error === "PAYMENT_PENDING"
@@ -303,6 +330,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                   ? "That status change is not allowed. Move orders forward one step, or cancel."
                   : "Could not save changes. Please retry.",
         );
+      }
       setEditor(null);
       setSelected(null);
       if (result.entity) setData(current => {
@@ -331,7 +359,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
         <Link href="/" className="admin-logo"><Leaf size={30}/><span>COCOTRIBE<small>BUSINESS ADMIN</small></span></Link>
         <p className="admin-nav-label">WORKSPACE</p>
         <nav aria-label="Admin sections">
-          {[["Orders",LayoutDashboard],["Products",Package],["Time slots",CalendarDays],["FAQs",CircleHelp],["Website settings",Settings],["Messages",Inbox]].map(([name,Icon]) => {
+          {[["Orders",LayoutDashboard],["Products",Package],["Time slots",CalendarDays],["FAQs",CircleHelp],["Website settings",Settings],["Messages",Inbox],["Audit log",History]].map(([name,Icon]) => {
             const label = name as string;
             const NavIcon = Icon as typeof LayoutDashboard;
             return <button type="button" key={label} className={tab === label ? "active" : ""} aria-current={tab === label ? "page" : undefined} onClick={()=>{setTab(label);setNotice("");setSidebarOpen(false);}}><NavIcon size={20}/>{label}</button>;
@@ -573,7 +601,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                     <form key={`${p.id}-${p.stock}`} onSubmit={e => {
                       e.preventDefault();
                       const stock = Number(new FormData(e.currentTarget).get("stock"));
-                      void save("stock", p.id, {stock});
+                      void save("stock", p.id, {stock, expected: p.stock});
                     }}>
                       <label className="field">Available stock / ലഭ്യമായ സ്റ്റോക്ക്
                         <input name="stock" type="number" min="0" max="1000000" step="1" required defaultValue={p.stock} />
@@ -587,7 +615,8 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                         setEditor({
                           kind: "product",
                           id: p.id,
-                          values: editValues(p),
+                          // Stock has its own guarded form above.
+                          values: Object.fromEntries(Object.entries(editValues(p)).filter(([key]) => key !== "stock")),
                         })
                       }
                     >
@@ -723,6 +752,49 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                 </article>
               ))}
             </div>
+          )}
+          {tab === "Audit log" && (
+            <>
+              {data.reconcile !== undefined && (
+                <p className={data.reconcile?.lastError || !data.reconcile?.lastSuccessAt ? "notice error" : "notice"}>
+                  Payment reconciliation:{" "}
+                  {data.reconcile?.lastSuccessAt
+                    ? `last successful run ${new Date(data.reconcile.lastSuccessAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST`
+                    : "has not run yet. Check the scheduled job."}
+                  {data.reconcile?.lastError ? ` · Latest problem: ${data.reconcile.lastError}` : ""}
+                </p>
+              )}
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      {["When (IST)", "Admin", "Action", "Record", "Changes"].map((s) => (
+                        <th key={s}>{s}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.audit.map((a) => (
+                      <tr key={a.id}>
+                        <td>{new Date(a.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</td>
+                        <td>{a.adminEmail}</td>
+                        <td>{a.action.replace("update:", "Updated ")}</td>
+                        <td>{a.entityId}</td>
+                        <td>
+                          {Object.entries(a.details || {}).map(([field, change]) => (
+                            <small key={field}>
+                              {field}: {String(change.from ?? "—")} → {String(change.to ?? "—")}
+                            </small>
+                          ))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {!data.audit.length && <div className="empty">No admin changes recorded yet.</div>}
+              </div>
+              <p className="muted">Showing the latest 100 entries.</p>
+            </>
           )}
         </>
       )}
@@ -864,14 +936,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                   setSelected({ ...selected, status: e.target.value })
                 }
               >
-                {[
-                  "PENDING",
-                  "CONFIRMED",
-                  "PREPARING",
-                  "READY",
-                  "COMPLETED",
-                  "CANCELLED",
-                ].map((s) => (
+                {nextOrderStatuses(data?.orders.find((o) => o.id === selected.id)?.status || selected.status).map((s) => (
                   <option key={s}>{s}</option>
                 ))}
               </select>
@@ -884,7 +949,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                   setSelected({ ...selected, paymentStatus: e.target.value })
                 }
               >
-                {["PENDING", "PAID", "REFUND_REQUIRED", "REFUNDED"].map((s) => (
+                {nextPaymentStatuses(selected.method, data?.orders.find((o) => o.id === selected.id)?.paymentStatus || selected.paymentStatus).map((s) => (
                   <option key={s}>{s}</option>
                 ))}
               </select>

@@ -3,7 +3,7 @@
 .coco-inner .wrap{width:93.4%;max-width:1440px;margin-inline:auto}
 .coco-inner .page-space{padding:24px 0 48px}
 .coco-inner .page-heading{position:relative;isolation:isolate;overflow:hidden;max-width:none;min-height:210px;padding:30px 36px;margin:0 0 28px;border:1px solid #e8dfcc;border-radius:10px;background:#f5f0e6;display:flex;flex-direction:column;justify-content:center}
-.coco-inner .page-heading:after{content:'';position:absolute;inset:0 0 0 45%;z-index:-1;background:linear-gradient(90deg,#f5f0e6,transparent 55%),url('/images/reference-hero.jpg') 63% center/cover no-repeat;opacity:.85}
+.coco-inner .page-heading:after{content:'';position:absolute;inset:0 0 0 45%;z-index:-1;background:linear-gradient(90deg,#f5f0e6,transparent 55%),url('/images/reference-hero.webp') 63% center/cover no-repeat;opacity:.85}
 .coco-inner .page-heading>*{max-width:59%}
 .coco-inner .inner-breadcrumb{font-size:12px;color:#73572f;margin-bottom:16px;line-height:1.6}
 .coco-inner .inner-breadcrumb span{margin:0 8px;color:#9b835e}
@@ -97,7 +97,7 @@ html:is([lang="ta"],[lang="hi"]) .ref-brand-lockup small{white-space:normal;line
 /* Keep mobile photography unobscured; put readable copy on ivory below it. */
 @media(max-width:850px){
  .reference-site .ref-hero{background:#f8f5ed;min-height:0;height:auto}
- .reference-site .ref-hero:before{content:"";display:block;position:relative;inset:auto;width:100%;height:clamp(210px,58vw,340px);min-height:0;background:url('/images/reference-hero.jpg') 65% 52% / auto 100% no-repeat;opacity:1;z-index:0}
+ .reference-site .ref-hero:before{content:"";display:block;position:relative;inset:auto;width:100%;height:clamp(210px,58vw,340px);min-height:0;background:url('/images/reference-hero.webp') 65% 52% / auto 100% no-repeat;opacity:1;z-index:0}
  .reference-site .ref-hero .ref-hero-copy{background:#f8f5ed;padding-top:24px}
 }
 /* Content-sized sections prevent translated copy from overlapping adjacent rows. */

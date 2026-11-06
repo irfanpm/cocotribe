@@ -1,6 +1,7 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
@@ -14,7 +15,8 @@ import {
 } from "lucide-react";
 import { useLanguage } from "./language";
 import { Heading, Quantity, money, WhatsApp, ErrorMessage } from "./ui";
-import { indiaDate, validBookingTime, phoneSchema } from "@/lib/validation";
+import { indiaDate, validBookingTime, validPhone } from "@/lib/booking-time";
+import { groupProducts } from "@/lib/product-groups";
 import type { Catalog } from "@/lib/demo";
 type GatewayResponse = {
   razorpay_payment_id: string;
@@ -65,6 +67,45 @@ async function loadCheckout() {
     };
     document.head.appendChild(script);
   });
+}
+type Gateway = { key: string; orderId: string; amount: number };
+/**
+ * Opens Razorpay checkout. A failed attempt stays inside the checkout window, where the
+ * customer can try again; onDone runs once they succeed or close it. Being sent back here
+ * is never treated as payment: the server verifies with Razorpay first.
+ */
+async function openCheckout(options: {
+  gateway: Gateway;
+  bookingId: string;
+  token: string;
+  name: string;
+  phone: string;
+  onDone: () => void;
+}) {
+  const { gateway, bookingId, token, name, phone, onDone } = options;
+  await loadCheckout();
+  new window.Razorpay({
+    key: gateway.key,
+    order_id: gateway.orderId,
+    amount: gateway.amount,
+    currency: "INR",
+    name: "COCOTRIBE",
+    description: bookingId,
+    prefill: { name, contact: phone },
+    theme: { color: "#173f32" },
+    handler: async (payment) => {
+      try {
+        await fetch("/api/payments/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payment, bookingId, token }),
+        });
+      } finally {
+        onDone();
+      }
+    },
+    modal: { ondismiss: onDone },
+  }).open();
 }
 export function Booking({ catalog }: { catalog: Catalog }) {
   const { t, lang } = useLanguage();
@@ -122,7 +163,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
   function review(e: React.FormEvent) {
     e.preventDefault();
     if (!product || product.stock < quantity) { setError("OUT_OF_STOCK"); return; }
-    if (!phoneSchema.safeParse(phone).success || name.trim().length < 2) { setError("INVALID_INPUT"); return; }
+    if (!validPhone(phone) || name.trim().length < 2) { setError("INVALID_INPUT"); return; }
     if (!slot || !validBookingTime(date, slot.startMinute, catalog.settings.leadHours, catalog.settings.maxDays)) { setError("INVALID_SLOT"); return; }
     if (!method || (method === "DELIVERY" ? !catalog.settings.deliveryEnabled : !catalog.online)) { setError("PAYMENT_UNAVAILABLE"); return; }
     setError("");
@@ -157,37 +198,19 @@ export function Booking({ catalog }: { catalog: Catalog }) {
         router.push(href);
         return;
       }
-      await loadCheckout();
-      const checkout = new window.Razorpay({
-        key: result.gateway.key,
-        order_id: result.gateway.orderId,
-        amount: result.gateway.amount,
-        currency: "INR",
-        name: "COCOTRIBE",
-        description: result.order.bookingId,
-        prefill: { name, contact: phone },
-        theme: { color: "#173f32" },
-        handler: async (payment) => {
-          try {
-            await fetch("/api/payments/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ...payment,
-                bookingId: result.order.bookingId,
-                token: result.token,
-              }),
-            });
-          } finally {
-            router.push(href);
-          }
-        },
-        modal: { ondismiss: () => router.push(href) },
+      await openCheckout({
+        gateway: result.gateway,
+        bookingId: result.order.bookingId,
+        token: result.token,
+        name,
+        phone,
+        onDone: () => router.push(href),
       });
-      checkout.on("payment.failed", () => router.push(href));
-      checkout.open();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "SERVICE_UNAVAILABLE");
+      const code = e instanceof Error ? e.message : "SERVICE_UNAVAILABLE";
+      setError(code);
+      // Pull the latest price and stock so the review shows what would actually be booked.
+      if (code === "PRICE_CHANGED" || code === "OUT_OF_STOCK") router.refresh();
     } finally {
       setBusy(false);
     }
@@ -254,7 +277,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                     inputMode="tel"
                     autoComplete="tel"
                     required
-                    pattern="[0-9+ ()-]{10,18}"
+                    pattern="[0-9+ \(\)\-]{10,18}"
                     placeholder="9496669360"
                   />
                 </label>
@@ -268,10 +291,15 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                       setQuantity(1);
                     }}
                   >
-                    {catalog.products.map((p) => (
-                      <option key={p.id} value={p.id} disabled={!p.stock}>
-                        {t(p.nameEn, p.nameMl)} · {money(p.price, lang)}
-                      </option>
+                    {groupProducts(catalog.products).map((variants) => (
+                      <optgroup key={variants[0].id} label={t(variants[0].nameEn, variants[0].nameMl).split(" · ")[0]}>
+                        {variants.map((p) => (
+                          <option key={p.id} value={p.id} disabled={!p.stock}>
+                            {t(p.nameEn, p.nameMl)} · {money(p.price, lang)}
+                            {p.stock ? "" : ` (${t("Currently unavailable", "ഇപ്പോൾ ലഭ്യമല്ല")})`}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </label>
@@ -310,6 +338,9 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                       </option>
                     ))}
                   </select>
+                  {date && !catalog.slots.some(s => validBookingTime(date, s.startMinute, catalog.settings.leadHours, catalog.settings.maxDays)) && (
+                    <small role="status">{t("No time slots left for this date. Please choose another date.", "ഈ തീയതിയിൽ സമയം ലഭ്യമല്ല. മറ്റൊരു തീയതി തിരഞ്ഞെടുക്കുക.")}</small>
+                  )}
                 </label>
               </div>
               <p className="muted">
@@ -391,6 +422,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                   </span>
                 </label>}
               </fieldset>
+              {error && <ErrorMessage code={error} />}
               <button
                 className="button full"
                 disabled={
@@ -423,7 +455,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                   ],
                   [t("Quantity", "എണ്ണം"), quantity],
                   [
-                    t("Price per piece", "ഒരു എണ്ണത്തിന്റെ വില"),
+                    t("Unit price", "ഒരു എണ്ണത്തിന്റെ വില"),
                     money(product?.price || 0, lang),
                   ],
                   [t("Date", "തീയതി"), date],
@@ -482,11 +514,12 @@ export function Booking({ catalog }: { catalog: Catalog }) {
           )}
         </div>
         <aside className="booking-aside">
-          <img
+          <Image
             src={product?.image || "/images/hero.jpg"}
             alt={product ? t(product.nameEn, product.nameMl) : ""}
-            width="500"
-            height="320"
+            width={500}
+            height={320}
+            sizes="(max-width: 900px) 92vw, 400px"
           />
           <div>
             <p className="eyebrow">{t("YOUR ORDER", "നിങ്ങളുടെ ഓർഡർ")}</p>
@@ -544,7 +577,9 @@ type OrderView = {
   paymentStatus: string;
   status: string;
   notes: string;
+  gateway: Gateway | null;
 };
+const POLL_MS = 20000;
 export function Confirmation({
   id,
   catalog,
@@ -555,11 +590,14 @@ export function Confirmation({
   const { t, lang } = useLanguage();
   const [order, setOrder] = useState<OrderView | null>(null),
     [error, setError] = useState(""),
-    [loading, setLoading] = useState(true);
+    [loading, setLoading] = useState(true),
+    [paying, setPaying] = useState(false);
   const token = useRef("");
-  async function refresh() {
-    setLoading(true);
-    setError("");
+  const refresh = useCallback(async (quiet = false) => {
+    if (!quiet) {
+      setLoading(true);
+      setError("");
+    }
     try {
       const r = await fetch(`/api/bookings/${encodeURIComponent(id)}`, {
         headers: { Authorization: `Bearer ${token.current}` },
@@ -568,16 +606,50 @@ export function Confirmation({
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
       setOrder(data);
+      setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "SERVICE_UNAVAILABLE");
+      // A background check failing should not replace a booking that is already on screen.
+      if (!quiet) setError(e instanceof Error ? e.message : "SERVICE_UNAVAILABLE");
     } finally {
-      setLoading(false);
+      if (!quiet) setLoading(false);
     }
-  }
+  }, [id]);
   useEffect(() => {
     token.current = window.location.hash.slice(1);
     void refresh();
-  }, [id]);
+  }, [refresh]);
+  const finished = order?.status === "COMPLETED" || order?.status === "CANCELLED";
+  useEffect(() => {
+    if (finished) return;
+    const check = () => {
+      if (document.visibilityState === "visible" && token.current) void refresh(true);
+    };
+    const timer = setInterval(check, POLL_MS);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, [finished, refresh]);
+  async function payNow() {
+    if (!order?.gateway) return;
+    setPaying(true);
+    setError("");
+    try {
+      await openCheckout({
+        gateway: order.gateway,
+        bookingId: order.bookingId,
+        token: token.current,
+        name: order.name,
+        phone: order.phone,
+        onDone: () => void refresh(),
+      });
+    } catch {
+      setError("PAYMENT_UNAVAILABLE");
+    } finally {
+      setPaying(false);
+    }
+  }
   const msg = order
     ? t(
         `Hi COCOTRIBE, please confirm my booking ${id}: ${order.quantity} × ${order.productNameEn}, ${order.date}, ${order.slotLabel} IST.`,
@@ -594,9 +666,11 @@ export function Confirmation({
       )}
       {order && (
         <>
-          <div className="confirmation-icon">
-            <Check size={34} />
-          </div>
+          {order.status !== "CANCELLED" && (
+            <div className="confirmation-icon">
+              <Check size={34} />
+            </div>
+          )}
           <Heading
             en={
               order.status === "CONFIRMED"
@@ -676,6 +750,14 @@ export function Confirmation({
               </p>
             )}
             <div className="button-row no-print">
+              {order.gateway && (
+                <button className="button" disabled={paying} onClick={payNow}>
+                  {paying
+                    ? t("Processing…", "പ്രോസസ്സ് ചെയ്യുന്നു…")
+                    : t("Continue to secure payment", "സുരക്ഷിത പേയ്‌മെന്റിലേക്ക് തുടരാം")}
+                  <ArrowRight size={18} />
+                </button>
+              )}
               <a
                 className="button"
                 target="_blank"
@@ -692,7 +774,7 @@ export function Confirmation({
               <button
                 className="text-link"
                 disabled={loading}
-                onClick={refresh}
+                onClick={() => void refresh()}
               >
                 <RefreshCw size={17} />
                 {t("Refresh status", "നില പുതുക്കുക")}

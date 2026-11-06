@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { Menu, X, Phone, Mail, MapPin, Palmtree, Heart } from "lucide-react";
 import { useLanguage } from "./language";
 import { WhatsApp } from "./ui";
-import { ReferenceCrop } from "./reference-home";
 import type { SettingsView } from "@/lib/demo";
 const links = [
   ["/", "Home", "ഹോം"],
@@ -19,7 +18,7 @@ const links = [
 ];
 function Brand({footer = false}: {footer?: boolean}) {
   const {t} = useLanguage();
-  return <span className="ref-brand-lockup"><ReferenceCrop x={footer ? 55 : 106} y={footer ? 839 : 61} w={36} h={footer ? 42 : 47} label="" className="ref-brand-palm"/><span><strong>COCOTRIBE</strong><small>{t("GOODNESS FROM NATURE · WITH YOU ALWAYS", "പ്രകൃതിയുടെ നന്മ · എന്നും നിങ്ങളോടൊപ്പം")}</small></span></span>;
+  return <span className="ref-brand-lockup"><img src={footer ? "/images/brand-palm-footer.webp" : "/images/brand-palm.webp"} alt="" width={36} height={footer ? 42 : 47} className="ref-brand-palm"/><span><strong>COCOTRIBE</strong><small>{t("GOODNESS FROM NATURE · WITH YOU ALWAYS", "പ്രകൃതിയുടെ നന്മ · എന്നും നിങ്ങളോടൊപ്പം")}</small></span></span>;
 }
 export function Shell({
   children,

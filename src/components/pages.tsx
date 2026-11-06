@@ -1,6 +1,8 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import {groupProducts, productFamily} from "@/lib/product-groups";
+import {indiaDate} from "@/lib/booking-time";
 import {VariantCard} from "./variant-card";
 import { useState } from "react";
 import { MapPin, Phone, Mail, Clock, Check, ArrowRight } from "lucide-react";
@@ -64,11 +66,13 @@ export function ProductDetail({
         ← {t("All products", "എല്ലാ ഉൽപ്പന്നങ്ങളും")}
       </Link>
       <div className="detail-grid">
-        <img
+        <Image
           src={p.image}
-          width="900"
-          height="700"
+          width={900}
+          height={700}
           alt={t(p.nameEn, p.nameMl)}
+          sizes="(max-width: 900px) 92vw, 50vw"
+          priority
         />
         <div>
           <p className="eyebrow">
@@ -110,6 +114,8 @@ export function ProductDetail({
             <input
               type="date"
               value={date}
+              min={indiaDate()}
+              max={indiaDate(new Date(Date.now() + catalog.settings.maxDays * 86400000))}
               onChange={(e) => setDate(e.target.value)}
             />
           </label>
@@ -378,7 +384,7 @@ export function Contact({ catalog }: { catalog: Catalog }) {
               type="tel"
               inputMode="tel"
               autoComplete="tel"
-              pattern="[0-9+ ()-]{10,18}"
+              pattern="[0-9+ \(\)\-]{10,18}"
             />
           </label>
           <label className="field">

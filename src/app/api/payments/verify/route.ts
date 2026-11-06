@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { body, sameOrigin, fail, AppError } from "@/lib/http";
+import { body, sameOrigin, fail, AppError, clientIp } from "@/lib/http";
+import { rateLimit } from "@/lib/rate-limit";
 import { checkSignature } from "@/lib/security";
 import { getPrivateOrder, markCaptured } from "@/lib/orders";
 import { razorpay, type GatewayPayment } from "@/lib/razorpay";
@@ -13,6 +14,7 @@ const schema = z.object({
 export async function POST(request: Request) {
   try {
     sameOrigin(request);
+    await rateLimit("verify-ip", clientIp(request), 30);
     const data = schema.parse(await body(request));
     const order = await getPrivateOrder(data.bookingId, data.token);
     if (
@@ -36,7 +38,10 @@ export async function POST(request: Request) {
       throw new AppError("PAYMENT_MISMATCH", 409);
     if (p.status === "captured")
       await markCaptured(p.order_id, p.id, p.amount, p.currency);
-    return NextResponse.json({ paid: p.status === "captured" });
+    return NextResponse.json(
+      { paid: p.status === "captured" },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (e) {
     return fail(e);
   }

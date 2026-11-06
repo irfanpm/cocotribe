@@ -77,6 +77,9 @@ model Order {
   updatedAt DateTime @updatedAt
   @@index([date,status])
   @@index([paymentStatus])
+  @@index([date,slotId])
+  @@index([createdAt])
+  @@index([method,paymentStatus,status,reservedUntil])
 }
 model Admin {
   id String @id @default(cuid())
@@ -128,5 +131,14 @@ model AuditLog {
   adminId String
   action String
   entityId String
+  details Json?
   createdAt DateTime @default(now())
+  @@index([createdAt])
+}
+model JobRun {
+  name String @id
+  lastRunAt DateTime
+  lastSuccessAt DateTime?
+  lastError String?
+  lastResult Json?
 }

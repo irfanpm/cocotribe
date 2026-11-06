@@ -8,6 +8,92 @@ import {
   indiaDate,
 } from "../src/lib/validation";
 import { checkSignature } from "../src/lib/security";
+import { productSchema } from "../src/lib/validation";
+import { orderChangeError, nextOrderStatuses, nextPaymentStatuses } from "../src/lib/order-rules";
+import { hasCronSecret } from "../src/lib/cron-auth";
+import { safeError } from "../src/lib/monitor";
+import { clientIp } from "../src/lib/http";
+import { currentProducts } from "../src/lib/product-catalog";
+test("Every catalogue image path passes the admin product form", () => {
+  for (const p of currentProducts)
+    assert.equal(productSchema.safeParse(p).success, true, p.slug);
+  for (const image of ["/images/../secret.png", "/images/x.svg", "https://evil.test/a.png", "/images/a/../../b.jpg"])
+    assert.equal(productSchema.safeParse({ ...currentProducts[0], image }).success, false, image);
+});
+test("Owner's catalogue prices are preserved", () => {
+  const rupees = Object.fromEntries(currentProducts.map((p) => [p.slug, p.price / 100]));
+  assert.deepEqual(rupees, {
+    "pooja-coconut-2": 50, "pooja-coconut-5": 125, "pooja-coconut-10": 250,
+    "normal-coconut-2": 70, "normal-coconut-5": 175, "normal-coconut-10": 350,
+    "coconut-oil-1-litre": 320, "coconut-oil-1-kg": 350,
+    "desiccated-coconut-100g": 65, "roasted-coconut-100g": 60,
+  });
+});
+test("Order status moves one step forward or cancels; finished orders cannot reopen", () => {
+  const delivery = { method: "DELIVERY", paymentStatus: "PENDING" };
+  const check = (status: string, to: string, paymentStatus = "PENDING") =>
+    orderChangeError({ ...delivery, status }, { status: to, paymentStatus });
+  assert.equal(check("PENDING", "CONFIRMED"), null);
+  assert.equal(check("PENDING", "READY"), "INVALID_STATUS");
+  assert.equal(check("READY", "COMPLETED"), "PAYMENT_PENDING");
+  assert.equal(check("READY", "COMPLETED", "PAID"), null);
+  assert.equal(check("COMPLETED", "PENDING"), "INVALID_STATUS");
+  assert.equal(check("CANCELLED", "CONFIRMED"), "INVALID_STATUS");
+  assert.deepEqual(nextOrderStatuses("COMPLETED"), ["COMPLETED"]);
+});
+test("Staff cannot mark online orders paid, and refunds close in order", () => {
+  const online = (status: string, paymentStatus: string) => ({ method: "RAZORPAY", status, paymentStatus });
+  assert.equal(
+    orderChangeError(online("PENDING", "PENDING"), { status: "PENDING", paymentStatus: "PAID" }),
+    "PAYMENT_MANAGED_BY_GATEWAY",
+  );
+  assert.equal(
+    orderChangeError(online("PENDING", "PENDING"), { status: "CONFIRMED", paymentStatus: "PENDING" }),
+    "PAYMENT_PENDING",
+  );
+  assert.equal(
+    orderChangeError(online("CANCELLED", "REFUND_REQUIRED"), { status: "CANCELLED", paymentStatus: "REFUNDED" }),
+    null,
+  );
+  assert.equal(
+    orderChangeError({ method: "DELIVERY", status: "CANCELLED", paymentStatus: "PENDING" }, { status: "CANCELLED", paymentStatus: "PAID" }),
+    "INVALID_STATUS",
+  );
+  assert.equal(
+    orderChangeError({ method: "DELIVERY", status: "COMPLETED", paymentStatus: "REFUNDED" }, { status: "COMPLETED", paymentStatus: "PAID" }),
+    "INVALID_STATUS",
+  );
+  assert.deepEqual(nextPaymentStatuses("RAZORPAY", "PENDING"), ["PENDING"]);
+});
+test("Cron access needs the exact secret, and a weak or missing secret never matches", () => {
+  const withAuth = (value?: string) =>
+    new Request("https://x.test/", value ? { headers: { authorization: value } } : {});
+  const saved = process.env.CRON_SECRET;
+  try {
+    delete process.env.CRON_SECRET;
+    assert.equal(hasCronSecret(withAuth("Bearer ")), false);
+    process.env.CRON_SECRET = "short";
+    assert.equal(hasCronSecret(withAuth("Bearer short")), false);
+    process.env.CRON_SECRET = "c".repeat(40);
+    assert.equal(hasCronSecret(withAuth(`Bearer ${"c".repeat(40)}`)), true);
+    assert.equal(hasCronSecret(withAuth(`Bearer ${"d".repeat(40)}`)), false);
+    assert.equal(hasCronSecret(withAuth()), false);
+  } finally {
+    process.env.CRON_SECRET = saved;
+  }
+});
+test("Logged errors never include the raw message, which can hold connection details", () => {
+  const error = Object.assign(new Error("Can't reach postgresql://user:pass@host:5432/db"), { code: "P1001" });
+  const logged = JSON.stringify(safeError(error));
+  assert.equal(logged.includes("pass"), false);
+  assert.equal(logged.includes("host"), false);
+  assert.match(logged, /P1001/);
+});
+test("Rate limiting uses the first forwarded address", () => {
+  const request = new Request("https://x.test/", { headers: { "x-forwarded-for": "203.0.113.9, 10.0.0.1" } });
+  assert.equal(clientIp(request), "203.0.113.9");
+  assert.equal(clientIp(new Request("https://x.test/")), "unknown");
+});
 test("Indian phone numbers normalise safely", () => {
   assert.equal(phoneSchema.parse("+91 94966 69360"), "919496669360");
   assert.equal(phoneSchema.parse("9496669360"), "919496669360");

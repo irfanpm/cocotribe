@@ -2,6 +2,7 @@ import {PrismaClient} from '@prisma/client';
 import {randomUUID,randomBytes} from 'node:crypto';
 import {hash} from 'bcryptjs';
 import assert from 'node:assert/strict';
+assert.match(process.env.DATABASE_URL || '', /koko_test/, 'Test data must never be created in the live database.');
 const db=new PrismaClient();const origin='http://127.0.0.1:3000';const tag=randomUUID();const email=`qa-${tag}@example.invalid`,password=randomBytes(24).toString('hex');let adminId='';
 const post=(path:string,data:unknown,cookie='')=>fetch(origin+path,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify(data)});
 async function main(){
