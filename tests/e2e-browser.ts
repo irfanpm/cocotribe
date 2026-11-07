@@ -222,7 +222,14 @@ async function main() {
     await adminPage.locator(".modal select").first().selectOption("CONFIRMED");
     await adminPage.locator('button:has-text("Update order")').click();
     await adminPage.locator('td:has-text("CONFIRMED")').first().waitFor();
-    step("admin login, sidebar, search, order transition");
+    const updateLink = adminPage.locator('a:has-text("Send WhatsApp update")');
+    const updateHref = decodeURIComponent((await updateLink.getAttribute("href")) || "");
+    assert.match(updateHref, /wa\.me\/919999999999/, "goes to the customer's number");
+    assert.match(updateHref, /Order status: Confirmed/);
+    assert.match(updateHref, /KT-/);
+    await adminPage.locator('button:has-text("Not now")').click();
+    assert.equal(await updateLink.count(), 0);
+    step("admin login, sidebar, search, order transition, WhatsApp update prompt");
 
     // Customer's open receipt updates with no reload (20-second background check).
     await page.locator('h1:has-text("Your coconuts are booked.")').waitFor({ timeout: 30000 });

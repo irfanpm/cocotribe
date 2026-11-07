@@ -17,6 +17,7 @@ import { useLanguage } from "./language";
 import { Heading, Quantity, money, WhatsApp, ErrorMessage } from "./ui";
 import { indiaDate, validBookingTime, validPhone } from "@/lib/booking-time";
 import { groupProducts } from "@/lib/product-groups";
+import { statuses } from "@/lib/order-messages";
 import type { Catalog } from "@/lib/demo";
 type GatewayResponse = {
   razorpay_payment_id: string;
@@ -42,19 +43,7 @@ declare global {
     };
   }
 }
-export const statuses: Record<string, [string, string]> = {
-  PENDING: ["Pending", "കാത്തിരിക്കുന്നു"],
-  CONFIRMED: ["Confirmed", "സ്ഥിരീകരിച്ചു"],
-  PREPARING: ["Preparing", "തയ്യാറാക്കുന്നു"],
-  READY: ["Ready", "തയ്യാർ"],
-  COMPLETED: ["Completed", "പൂർത്തിയായി"],
-  CANCELLED: ["Cancelled", "റദ്ദാക്കി"],
-  PAID: ["Paid", "പണമടച്ചു"],
-  REFUND_REQUIRED: ["Refund to be arranged", "റീഫണ്ട് ക്രമീകരിക്കണം"],
-  REFUNDED: ["Refunded", "പണം തിരികെ നൽകി"],
-  DELIVERY: ["Pay at Delivery", "ലഭിക്കുമ്പോൾ പണമടയ്ക്കാം"],
-  RAZORPAY: ["Online · Razorpay", "ഓൺലൈൻ · Razorpay"],
-};
+export { statuses };
 async function loadCheckout() {
   if (window.Razorpay) return;
   await new Promise<void>((resolve, reject) => {

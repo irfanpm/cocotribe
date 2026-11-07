@@ -14,6 +14,7 @@ import { hasCronSecret } from "../src/lib/cron-auth";
 import { safeError } from "../src/lib/monitor";
 import { clientIp } from "../src/lib/http";
 import { currentProducts } from "../src/lib/product-catalog";
+import { orderUpdateLink, orderUpdateMessage } from "../src/lib/order-messages";
 test("Every catalogue image path passes the admin product form", () => {
   for (const p of currentProducts)
     assert.equal(productSchema.safeParse(p).success, true, p.slug);
@@ -88,6 +89,30 @@ test("Logged errors never include the raw message, which can hold connection det
   assert.equal(logged.includes("pass"), false);
   assert.equal(logged.includes("host"), false);
   assert.match(logged, /P1001/);
+});
+test("Customer update message uses their language and links to their number", () => {
+  const order = {
+    bookingId: "KT-TEST1", name: "Asha", phone: "919000090000",
+    productNameEn: "Pooja Coconut · Mini Pack (2 pcs)", productNameMl: "പൂജാ തേങ്ങ · മിനി പാക്ക് (2 എണ്ണം)",
+    quantity: 2, date: "2026-11-20", slotLabel: "06:00 – 09:00", status: "CONFIRMED", paymentStatus: "PAID",
+  };
+  const expected: Record<string, RegExp[]> = {
+    en: [/Hello Asha/, /Order status: Confirmed/, /Payment status: Paid/, /Mini Pack/],
+    ml: [/നമസ്കാരം Asha/, /സ്ഥിരീകരിച്ചു/, /പണമടച്ചു/, /മിനി പാക്ക്/],
+    ta: [/வணக்கம் Asha/, /கட்டண நிலை/],
+    hi: [/नमस्ते Asha/, /भुगतान की स्थिति/],
+  };
+  for (const [language, patterns] of Object.entries(expected)) {
+    const message = orderUpdateMessage({ ...order, language });
+    assert.match(message, /KT-TEST1/);
+    for (const pattern of patterns) assert.match(message, pattern);
+    if (language === "ta" || language === "hi")
+      assert.doesNotMatch(message, /Confirmed|Paid|Mini Pack/, "no English left in the message");
+  }
+  assert.match(orderUpdateMessage(order), /Hello Asha/, "older orders default to English");
+  const link = new URL(orderUpdateLink({ ...order, name: "A & B?" }));
+  assert.equal(link.pathname, "/919000090000");
+  assert.match(link.searchParams.get("text") || "", /A & B\?/, "special characters stay inside the message");
 });
 test("Rate limiting uses the first forwarded address", () => {
   const request = new Request("https://x.test/", { headers: { "x-forwarded-for": "203.0.113.9, 10.0.0.1" } });

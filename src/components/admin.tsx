@@ -4,9 +4,10 @@ import Link from "next/link";
 import { CoconutLoader } from "./coconut-loader";
 import { sampleProducts, sampleSlots, sampleFaqs, sampleSettings } from "@/lib/demo";
 import { useRouter } from "next/navigation";
-import { LogOut, Plus, Search, LockKeyhole, ArrowRight, X, Menu, LayoutDashboard, Package, CalendarDays, CircleHelp, Settings, Inbox, ExternalLink, Leaf, History } from "lucide-react";
+import { LogOut, Plus, Search, LockKeyhole, ArrowRight, X, Menu, LayoutDashboard, Package, CalendarDays, CircleHelp, Settings, Inbox, ExternalLink, Leaf, History, MessageCircle } from "lucide-react";
 import { money } from "./ui";
 import { nextOrderStatuses, nextPaymentStatuses } from "@/lib/order-rules";
+import { orderUpdateLink } from "@/lib/order-messages";
 import type { ProductView, SlotView, FaqView, SettingsView } from "@/lib/demo";
 type AdminOrder = {
   id: string;
@@ -14,6 +15,8 @@ type AdminOrder = {
   name: string;
   phone: string;
   productNameEn: string;
+  productNameMl: string;
+  language: string;
   quantity: number;
   date: string;
   slotLabel: string;
@@ -197,7 +200,7 @@ function editValues(obj: object) {
 }
 const previewOrders: AdminOrder[] = ["CONFIRMED", "READY", "PENDING"].map((status, i) => ({
   id: `preview-${i}`, bookingId: `DEMO-100${i + 1}`, name: `Sample Customer ${i + 1}`, phone: "0000000000",
-  productNameEn: "Fresh Coconut", quantity: (i + 1) * 5, date: new Date().toISOString().slice(0,10),
+  productNameEn: "Fresh Coconut", productNameMl: "പുതിയ തേങ്ങ", language: "en", quantity: (i + 1) * 5, date: new Date().toISOString().slice(0,10),
   slotLabel: "09:00 – 12:00", total: (i + 1) * 20000, method: i === 1 ? "RAZORPAY" : "DELIVERY",
   paymentStatus: i === 1 ? "PAID" : "PENDING", status, notes: "Fictional booking for dashboard preview.", createdAt: new Date().toISOString()
 }));
@@ -215,7 +218,8 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
     [editor, setEditor] = useState<Editor | null>(null),
-    [selected, setSelected] = useState<AdminOrder | null>(null);
+    [selected, setSelected] = useState<AdminOrder | null>(null),
+    [customerUpdate, setCustomerUpdate] = useState<AdminOrder | null>(null);
   useEffect(() => {
     if (!editor && !selected) return;
     const modal = document.querySelector<HTMLElement>(".modal");
@@ -298,8 +302,8 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
     const timer = setTimeout(() => void load(), 250);
     return () => clearTimeout(timer);
   }, [load]);
-  async function save(kind: string, id: string | undefined, values: unknown) {
-    if (preview) { setEditor(null); setSelected(null); setNotice("Read-only preview. No changes were saved."); return; }
+  async function save(kind: string, id: string | undefined, values: unknown): Promise<boolean> {
+    if (preview) { setEditor(null); setSelected(null); setNotice("Read-only preview. No changes were saved."); return false; }
     setBusy(true);
     setError("");
     try {
@@ -310,7 +314,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
       });
       if (r.status === 401) {
         router.replace("/admin/login");
-        return;
+        return false;
       }
       const result = await r.json();
       if (!r.ok) {
@@ -347,8 +351,10 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
       try { localStorage.setItem("coco-catalog-updated", String(Date.now())); } catch {}
       router.refresh();
       await load();
+      return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed.");
+      return false;
     } finally {
       setBusy(false);
     }
@@ -402,6 +408,26 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
         <p role="status" className="notice success">
           {notice}
         </p>
+      )}
+      {customerUpdate && (
+        <div className="notice" role="status">
+          <p>{customerUpdate.name} has not been told about this change yet.</p>
+          <div className="button-row">
+            <a
+              className="button"
+              href={orderUpdateLink(customerUpdate)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setCustomerUpdate(null)}
+            >
+              <MessageCircle size={18} />
+              Send WhatsApp update
+            </a>
+            <button className="text-link" onClick={() => setCustomerUpdate(null)}>
+              Not now
+            </button>
+          </div>
+        </div>
       )}
       {!data ? (
         error ? null : <CoconutLoader />
@@ -967,15 +993,39 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
             <button
               className="button full"
               disabled={busy}
-              onClick={() =>
-                save("order", selected.id, {
+              onClick={async () => {
+                const before = data?.orders.find((o) => o.id === selected.id);
+                const changed =
+                  before?.status !== selected.status ||
+                  before?.paymentStatus !== selected.paymentStatus;
+                const saved = await save("order", selected.id, {
                   status: selected.status,
                   paymentStatus: selected.paymentStatus,
-                })
-              }
+                });
+                if (saved && changed)
+                  setCustomerUpdate({
+                    ...selected,
+                    // The server turns a paid order into a refund when it is cancelled.
+                    paymentStatus:
+                      selected.status === "CANCELLED" && selected.paymentStatus === "PAID"
+                        ? "REFUND_REQUIRED"
+                        : selected.paymentStatus,
+                  });
+              }}
             >
               {busy ? "Saving…" : "Update order"}
             </button>
+            {data?.orders.some((o) => o.id === selected.id) && (
+              <a
+                className="button outline full"
+                href={orderUpdateLink(data.orders.find((o) => o.id === selected.id)!)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle size={18} />
+                Message customer with current status
+              </a>
+            )}
           </section>
         </div>
       )}
