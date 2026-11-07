@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { LogOut, Plus, Search, LockKeyhole, ArrowRight, X, Menu, LayoutDashboard, Package, CalendarDays, CircleHelp, Settings, Inbox, ExternalLink, Leaf, History, MessageCircle } from "lucide-react";
 import { money } from "./ui";
 import { nextOrderStatuses, nextPaymentStatuses } from "@/lib/order-rules";
-import { orderUpdateLink } from "@/lib/order-messages";
+import { orderUpdateLink, orderUpdateMessage } from "@/lib/order-messages";
 import type { ProductView, SlotView, FaqView, SettingsView } from "@/lib/demo";
 type AdminOrder = {
   id: string;
@@ -204,6 +204,12 @@ const previewOrders: AdminOrder[] = ["CONFIRMED", "READY", "PENDING"].map((statu
   slotLabel: "09:00 – 12:00", total: (i + 1) * 20000, method: i === 1 ? "RAZORPAY" : "DELIVERY",
   paymentStatus: i === 1 ? "PAID" : "PENDING", status, notes: "Fictional booking for dashboard preview.", createdAt: new Date().toISOString()
 }));
+/** The order as it will be saved: the server turns a paid order into a refund when it is cancelled. */
+function afterSave(order: AdminOrder): AdminOrder {
+  return order.status === "CANCELLED" && order.paymentStatus === "PAID"
+    ? { ...order, paymentStatus: "REFUND_REQUIRED" }
+    : order;
+}
 export function AdminDashboard({ preview = false }: { preview?: boolean }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -219,7 +225,30 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
     [notice, setNotice] = useState(""),
     [editor, setEditor] = useState<Editor | null>(null),
     [selected, setSelected] = useState<AdminOrder | null>(null),
-    [customerUpdate, setCustomerUpdate] = useState<AdminOrder | null>(null);
+    [customerUpdate, setCustomerUpdate] = useState<AdminOrder | null>(null),
+    [askingToSend, setAskingToSend] = useState(false);
+  useEffect(() => {
+    if (!selected) setAskingToSend(false);
+  }, [selected]);
+  async function updateOrder(sendMessage: boolean) {
+    if (!selected) return;
+    const order = afterSave(selected);
+    // Must open during the click, or browsers block it as a pop-up. It stays blank until the save succeeds.
+    const whatsapp = sendMessage ? window.open("", "_blank") : null;
+    if (whatsapp) whatsapp.opener = null;
+    const saved = await save("order", selected.id, {
+      status: selected.status,
+      paymentStatus: selected.paymentStatus,
+    });
+    setAskingToSend(false);
+    if (!saved) {
+      whatsapp?.close();
+      return;
+    }
+    if (!sendMessage) return;
+    if (whatsapp) whatsapp.location.href = orderUpdateLink(order);
+    else setCustomerUpdate(order);
+  }
   useEffect(() => {
     if (!editor && !selected) return;
     const modal = document.querySelector<HTMLElement>(".modal");
@@ -411,7 +440,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
       )}
       {customerUpdate && (
         <div className="notice" role="status">
-          <p>{customerUpdate.name} has not been told about this change yet.</p>
+          <p>The status is saved, but your browser did not open WhatsApp. {customerUpdate.name} has not been told yet.</p>
           <div className="button-row">
             <a
               className="button"
@@ -957,6 +986,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
             <label className="field">
               Order status
               <select
+                disabled={askingToSend}
                 value={selected.status}
                 onChange={(e) =>
                   setSelected({ ...selected, status: e.target.value })
@@ -970,6 +1000,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
             <label className="field">
               Payment status
               <select
+                disabled={askingToSend}
                 value={selected.paymentStatus}
                 onChange={(e) =>
                   setSelected({ ...selected, paymentStatus: e.target.value })
@@ -990,32 +1021,36 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                 {error}
               </p>
             )}
-            <button
-              className="button full"
-              disabled={busy}
-              onClick={async () => {
-                const before = data?.orders.find((o) => o.id === selected.id);
-                const changed =
-                  before?.status !== selected.status ||
-                  before?.paymentStatus !== selected.paymentStatus;
-                const saved = await save("order", selected.id, {
-                  status: selected.status,
-                  paymentStatus: selected.paymentStatus,
-                });
-                if (saved && changed)
-                  setCustomerUpdate({
-                    ...selected,
-                    // The server turns a paid order into a refund when it is cancelled.
-                    paymentStatus:
-                      selected.status === "CANCELLED" && selected.paymentStatus === "PAID"
-                        ? "REFUND_REQUIRED"
-                        : selected.paymentStatus,
-                  });
-              }}
-            >
-              {busy ? "Saving…" : "Update order"}
-            </button>
-            {data?.orders.some((o) => o.id === selected.id) && (
+            {askingToSend ? (
+              <div role="group" aria-labelledby="send-question">
+                <h3 id="send-question">Send {selected.name} a WhatsApp message about this update?</h3>
+                <p className="muted preserve-lines">{orderUpdateMessage(afterSave(selected))}</p>
+                <button className="button full" disabled={busy} autoFocus onClick={() => void updateOrder(true)}>
+                  <MessageCircle size={18} />
+                  {busy ? "Saving…" : "Yes, update and open WhatsApp"}
+                </button>
+                <button className="button outline full" disabled={busy} onClick={() => void updateOrder(false)}>
+                  No, update only
+                </button>
+                <button className="text-link" disabled={busy} onClick={() => setAskingToSend(false)}>
+                  Go back
+                </button>
+              </div>
+            ) : (
+              <button
+                className="button full"
+                disabled={busy}
+                onClick={() => {
+                  const before = data?.orders.find((o) => o.id === selected.id);
+                  if (before?.status === selected.status && before?.paymentStatus === selected.paymentStatus)
+                    setSelected(null);
+                  else setAskingToSend(true);
+                }}
+              >
+                {busy ? "Saving…" : "Update order"}
+              </button>
+            )}
+            {!askingToSend && data?.orders.some((o) => o.id === selected.id) && (
               <a
                 className="button outline full"
                 href={orderUpdateLink(data.orders.find((o) => o.id === selected.id)!)}

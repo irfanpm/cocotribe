@@ -220,20 +220,45 @@ async function main() {
     const statusOptions = await adminPage.locator(".modal select").first().locator("option").allTextContents();
     assert.deepEqual(statusOptions, ["PENDING", "CONFIRMED", "CANCELLED"], "only valid next steps are offered");
     await adminPage.locator(".modal select").first().selectOption("CONFIRMED");
+    // Nothing is saved until the question is answered, and Go back keeps the order as it was.
+    await adminContext.route("https://wa.me/**", (r) => r.fulfill({ status: 200, body: "whatsapp stub" }));
     await adminPage.locator('button:has-text("Update order")').click();
+    await adminPage.locator("text=a WhatsApp message about this update?").waitFor();
+    assert.equal((await db.order.findFirstOrThrow({ where: { name: "E2E Customer" } })).status, "PENDING");
+    await adminPage.locator('button:has-text("Go back")').click();
+    await adminPage.locator('button:has-text("Update order")').click();
+    // Yes: saved, and WhatsApp opens with the customer's number and the new status.
+    const whatsappTab = adminContext.waitForEvent("page");
+    await adminPage.locator('button:has-text("Yes, update and open WhatsApp")').click();
+    const opened = await whatsappTab;
+    await opened.waitForURL(/wa\.me/);
+    const sentTo = decodeURIComponent(opened.url());
+    assert.match(sentTo, /wa\.me\/919999999999/, "goes to the customer's number");
+    assert.match(sentTo, /Order status: Confirmed/);
+    assert.match(sentTo, /KT-/);
+    await opened.close();
     await adminPage.locator('td:has-text("CONFIRMED")').first().waitFor();
-    const updateLink = adminPage.locator('a:has-text("Send WhatsApp update")');
-    const updateHref = decodeURIComponent((await updateLink.getAttribute("href")) || "");
-    assert.match(updateHref, /wa\.me\/919999999999/, "goes to the customer's number");
-    assert.match(updateHref, /Order status: Confirmed/);
-    assert.match(updateHref, /KT-/);
-    await adminPage.locator('button:has-text("Not now")').click();
-    assert.equal(await updateLink.count(), 0);
-    step("admin login, sidebar, search, order transition, WhatsApp update prompt");
+    assert.equal((await db.order.findFirstOrThrow({ where: { name: "E2E Customer" } })).status, "CONFIRMED");
+    step("admin login, sidebar, search, order transition; Yes saves and opens WhatsApp");
 
     // Customer's open receipt updates with no reload (20-second background check).
     await page.locator('h1:has-text("Your coconuts are booked.")').waitFor({ timeout: 30000 });
     step("customer receipt updated by itself after admin change");
+
+    // No: saved, and no WhatsApp window or prompt appears.
+    await adminPage.locator('button:has-text("View")').first().click();
+    await adminPage.locator(".modal select").first().selectOption("PREPARING");
+    await adminPage.locator('button:has-text("Update order")').click();
+    let extraWindow = false;
+    const onPage = () => { extraWindow = true; };
+    adminContext.on("page", onPage);
+    await adminPage.locator('button:has-text("No, update only")').click();
+    await adminPage.locator('td:has-text("PREPARING")').first().waitFor();
+    adminContext.off("page", onPage);
+    assert.equal(extraWindow, false, "no WhatsApp window when the admin says no");
+    assert.equal(await adminPage.locator('a:has-text("Send WhatsApp update")').count(), 0);
+    assert.equal((await db.order.findFirstOrThrow({ where: { name: "E2E Customer" } })).status, "PREPARING");
+    step("No saves the status without any message");
 
     // Edit a price through the product form; stock must not move; customer page updates on focus.
     await adminPage.locator('nav[aria-label="Admin sections"] button:has-text("Products")').click();
