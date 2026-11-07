@@ -9,8 +9,10 @@ import {
   getPrivateOrder,
   ensureGatewayOrder,
   expireReservation,
+  serial,
 } from "../src/lib/orders";
 import { reconcileExpired, RECONCILE_JOB } from "../src/lib/reconcile";
+import { rateLimitAll } from "../src/lib/rate-limit";
 import { sampleSettings } from "../src/lib/demo";
 import { indiaDate } from "../src/lib/validation";
 const enabled = process.env.RUN_DATABASE_TESTS === "1";
@@ -184,6 +186,54 @@ test(
       );
       assert.equal(new Set(retries.map((r) => r.order.id)).size, 1, "Idempotent under concurrency");
       assert.equal((await db.product.findUniqueOrThrow({ where: { id: p.id } })).stock, 9);
+
+      // Slot capacity holds exactly when many customers want the last places.
+      await db.product.update({ where: { id: p.id }, data: { stock: 100 } });
+      const capacityDate = indiaDate(new Date(Date.now() + 9 * 86400000));
+      await db.timeSlot.update({ where: { id: s.id }, data: { capacity: 5 } });
+      const crowd = await Promise.allSettled(
+        Array.from({ length: 25 }, () =>
+          createBooking({ ...base, date: capacityDate, quantity: 1, requestKey: randomUUID() }),
+        ),
+      );
+      assert.equal(crowd.filter((r) => r.status === "fulfilled").length, 5, "Exactly the free places are booked");
+      assert.equal((await db.product.findUniqueOrThrow({ where: { id: p.id } })).stock, 95, "Refused bookings keep no stock");
+      for (const r of crowd)
+        if (r.status === "rejected") assert.equal(r.reason.code, "SLOT_FULL");
+      await db.timeSlot.update({ where: { id: s.id }, data: { capacity: 1000 } });
+
+      // A stale price is refused.
+      const priceRace = await Promise.allSettled([
+        createBooking({ ...base, quantity: 1, expectedUnitPrice: 3999, requestKey: randomUUID() }),
+      ]);
+      assert.equal((priceRace[0] as PromiseRejectedResult).reason.code, "PRICE_CHANGED");
+
+      // Bookings keep working while staff change the same product's stock.
+      await db.product.update({ where: { id: p.id }, data: { stock: 50 } });
+      const mixed = await Promise.allSettled([
+        ...Array.from({ length: 10 }, () => createBooking({ ...base, quantity: 1, requestKey: randomUUID() })),
+        ...Array.from({ length: 5 }, () =>
+          serial((tx) => tx.product.update({ where: { id: p.id }, data: { stock: { increment: 1 } } })),
+        ),
+      ]);
+      assert.equal(mixed.filter((r) => r.status === "rejected").length, 0, "No deadlocks or lost work");
+      assert.equal((await db.product.findUniqueOrThrow({ where: { id: p.id } })).stock, 45, "Every change is counted");
+
+      // Rate limits count correctly under simultaneous requests and share one window.
+      const ruleKey = randomUUID();
+      const limited2 = await Promise.allSettled(
+        Array.from({ length: 12 }, () =>
+          rateLimitAll([
+            { scope: "itest-a", key: ruleKey, limit: 5 },
+            { scope: "itest-b", key: ruleKey, limit: 100 },
+          ]),
+        ),
+      );
+      assert.equal(limited2.filter((r) => r.status === "fulfilled").length, 5, "Exactly the limit passes");
+      assert.ok(limited2.every((r) => r.status === "fulfilled" || r.reason.code === "RATE_LIMIT"), "No deadlocks");
+      const window = await db.rateLimit.findFirstOrThrow({ orderBy: { resetAt: "desc" } });
+      assert.ok(window.resetAt.getTime() > Date.now(), "Window ends in the future, in UTC");
+      assert.ok(window.resetAt.getTime() < Date.now() + 16 * 60000);
 
       // Gateway order attaches once even when retries race.
       const online = await createBooking({ ...base, quantity: 1, method: "RAZORPAY", requestKey: randomUUID() });

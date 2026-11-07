@@ -3,17 +3,19 @@ import { revalidateTag } from "next/cache";
 import { isDemo } from "@/lib/db";
 import { body, sameOrigin, fail, AppError, clientIp } from "@/lib/http";
 import { bookingSchema } from "@/lib/validation";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitAll } from "@/lib/rate-limit";
 import { createBooking, ensureGatewayOrder, publicOrder } from "@/lib/orders";
 import { razorpay } from "@/lib/razorpay";
 export async function POST(request: Request) {
   try {
     if (isDemo()) throw new AppError("DEMO_MODE", 503);
     sameOrigin(request);
-    await rateLimit("booking-ip", clientIp(request), 20);
     const data = bookingSchema.parse(await body(request));
-    await rateLimit("booking", data.phone, 8);
-    await rateLimit("booking-global", "all", 300, 1);
+    await rateLimitAll([
+      { scope: "booking-ip", key: clientIp(request), limit: 20 },
+      { scope: "booking", key: data.phone, limit: 8 },
+      { scope: "booking-global", key: "all", limit: 300, minutes: 1 },
+    ]);
     if (
       data.method === "RAZORPAY" &&
       (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET)

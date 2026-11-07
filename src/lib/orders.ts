@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, type Product, type Settings, type TimeSlot } from "@prisma/client";
 import { createHmac, randomBytes } from "node:crypto";
 import { db } from "./db";
 import { AppError } from "./http";
@@ -6,25 +6,17 @@ import { reportIssue } from "./monitor";
 import { hash } from "./security";
 import { bookingSchema, validBookingTime } from "./validation";
 import type { z } from "zod";
-// P2034 serialization conflict, P2028 transaction start timeout under load, and P2002
-// when a concurrent retry of the same request wins the unique key: the next attempt
-// sees the committed row and returns it, which is what makes retries idempotent.
-const RETRYABLE = new Set(["P2034", "P2028", "P2002"]);
+// P2034 serialization conflict or deadlock, and P2028 transaction start timeout under load.
+const RETRYABLE = new Set(["P2034", "P2028"]);
 const ATTEMPTS = 6;
-export async function serial<T>(
-  fn: (tx: Prisma.TransactionClient) => Promise<T>,
-): Promise<T> {
+async function withRetries<T>(run: () => Promise<T>, retryable: Set<string>): Promise<T> {
   for (let n = 0; ; n++) {
     try {
-      return await db.$transaction(fn, {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-        maxWait: 5000,
-        timeout: 10000,
-      });
+      return await run();
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
-        RETRYABLE.has(e.code) &&
+        retryable.has(e.code) &&
         n < ATTEMPTS - 1
       ) {
         await new Promise((r) => setTimeout(r, Math.random() * 40 * 2 ** n));
@@ -36,6 +28,28 @@ export async function serial<T>(
     }
   }
 }
+export async function serial<T>(
+  fn: (tx: Prisma.TransactionClient) => Promise<T>,
+): Promise<T> {
+  // P2002 here means a concurrent request won a unique key; the next attempt sees its row.
+  return withRetries(
+    () =>
+      db.$transaction(fn, {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: 5000,
+        timeout: 10000,
+      }),
+    new Set([...RETRYABLE, "P2002"]),
+  );
+}
+/**
+ * Reserves stock and a slot place without retry storms. Serializable transactions made
+ * simultaneous bookings abort and start again, so waits grew quickly with database distance.
+ * Here bookings for one slot and date queue briefly on a lock, the capacity count runs
+ * inside that lock, and stock changes in one conditional update that can never go below
+ * zero. Bookings for other slots and dates do not wait for each other.
+ * Lock order is always slot, then product, and nothing takes them the other way round.
+ */
 export async function createBooking(data: z.infer<typeof bookingSchema>) {
   const secret = process.env.SESSION_SECRET;
   if (!secret || secret.length < 48)
@@ -44,61 +58,107 @@ export async function createBooking(data: z.infer<typeof bookingSchema>) {
   const token = createHmac("sha256", secret)
     .update(`booking:${data.requestKey}`)
     .digest("hex");
-  const order = await serial(async (tx) => {
-    const existing = await tx.order.findUnique({
-      where: { requestKey: data.requestKey },
-    });
-    if (existing) return existing;
-    const [product, slot, settings] = await Promise.all([
-      tx.product.findUnique({ where: { id: data.productId } }),
-      tx.timeSlot.findUnique({ where: { id: data.slotId } }),
-      tx.settings.findUniqueOrThrow({ where: { id: "main" } }),
-    ]);
-    if (!product?.active || product.stock < data.quantity)
-      throw new AppError("OUT_OF_STOCK", 409);
-    if (product.price !== expectedUnitPrice)
-      throw new AppError("PRICE_CHANGED", 409);
-    if (
-      !slot?.active ||
-      !validBookingTime(
-        data.date,
-        slot.startMinute,
-        settings.leadHours,
-        settings.maxDays,
-      )
+  // One round trip for everything the checks below need.
+  const [state] = await db.$queryRaw<
+    {
+      existingId: string | null;
+      product: Product | null;
+      slot: TimeSlot | null;
+      settings: Settings | null;
+    }[]
+  >`SELECT
+      (SELECT o."id" FROM "Order" o WHERE o."requestKey" = ${data.requestKey}) AS "existingId",
+      (SELECT row_to_json(p) FROM "Product" p WHERE p."id" = ${data.productId}) AS "product",
+      (SELECT row_to_json(t) FROM "TimeSlot" t WHERE t."id" = ${data.slotId}) AS "slot",
+      (SELECT row_to_json(s) FROM "Settings" s WHERE s."id" = 'main') AS "settings"`;
+  if (state.existingId)
+    return {
+      order: await db.order.findUniqueOrThrow({ where: { id: state.existingId } }),
+      token,
+    };
+  const { product, slot, settings } = state;
+  if (!settings) throw new AppError("SERVICE_UNAVAILABLE", 503);
+  if (!product?.active || product.stock < data.quantity)
+    throw new AppError("OUT_OF_STOCK", 409);
+  if (product.price !== expectedUnitPrice)
+    throw new AppError("PRICE_CHANGED", 409);
+  if (
+    !slot?.active ||
+    !validBookingTime(
+      data.date,
+      slot.startMinute,
+      settings.leadHours,
+      settings.maxDays,
     )
-      throw new AppError("INVALID_SLOT", 409);
-    if ((data.method === "RAZORPAY" && !settings.onlineEnabled) ||
-        (data.method === "DELIVERY" && !settings.deliveryEnabled))
-      throw new AppError("PAYMENT_UNAVAILABLE", 409);
-    const count = await tx.order.count({
-      where: {
-        date: data.date,
-        slotId: data.slotId,
-        status: { not: "CANCELLED" },
-      },
-    });
-    if (count >= slot.capacity) throw new AppError("SLOT_FULL", 409);
-    await tx.product.update({
-      where: { id: product.id },
-      data: { stock: { decrement: data.quantity } },
-    });
-    return tx.order.create({
-      data: {
-        ...orderData,
-        tokenHash: hash(token),
-        bookingId: `KT-${randomBytes(5).toString("hex").toUpperCase()}`,
-        productNameEn: product.nameEn,
-        productNameMl: product.nameMl,
-        unitPrice: product.price,
-        total: product.price * data.quantity,
-        slotLabel: slot.label,
-        reservedUntil:
-          data.method === "RAZORPAY" ? new Date(Date.now() + 30 * 60000) : null,
-      },
-    });
-  });
-  return { order, token };
+  )
+    throw new AppError("INVALID_SLOT", 409);
+  if ((data.method === "RAZORPAY" && !settings.onlineEnabled) ||
+      (data.method === "DELIVERY" && !settings.deliveryEnabled))
+    throw new AppError("PAYMENT_UNAVAILABLE", 409);
+  const lockKey = `booking:${data.slotId}:${data.date}`;
+  try {
+    const order = await withRetries(
+      () =>
+        db.$transaction(
+          async (tx) => {
+            await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}::text, 0))`;
+            const count = await tx.order.count({
+              where: {
+                date: data.date,
+                slotId: data.slotId,
+                status: { not: "CANCELLED" },
+              },
+            });
+            if (count >= slot.capacity) throw new AppError("SLOT_FULL", 409);
+            const reserved = await tx.product.updateMany({
+              where: {
+                id: product.id,
+                active: true,
+                price: expectedUnitPrice,
+                stock: { gte: data.quantity },
+              },
+              data: { stock: { decrement: data.quantity } },
+            });
+            if (reserved.count !== 1) {
+              const current = await tx.product.findUnique({ where: { id: product.id } });
+              throw new AppError(
+                current?.active && current.price !== expectedUnitPrice
+                  ? "PRICE_CHANGED"
+                  : "OUT_OF_STOCK",
+                409,
+              );
+            }
+            return tx.order.create({
+              data: {
+                ...orderData,
+                tokenHash: hash(token),
+                bookingId: `KT-${randomBytes(5).toString("hex").toUpperCase()}`,
+                productNameEn: product.nameEn,
+                productNameMl: product.nameMl,
+                unitPrice: expectedUnitPrice,
+                total: expectedUnitPrice * data.quantity,
+                slotLabel: slot.label,
+                reservedUntil:
+                  data.method === "RAZORPAY" ? new Date(Date.now() + 30 * 60000) : null,
+              },
+            });
+          },
+          // PostgreSQL's default Read Committed, left implicit to save a round trip.
+          { maxWait: 15000, timeout: 20000 },
+        ),
+      RETRYABLE,
+    );
+    return { order, token };
+  } catch (e) {
+    // The same request arriving twice at once: the insert rolled back, so return the winner.
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      const winner = await db.order.findUnique({
+        where: { requestKey: data.requestKey },
+      });
+      if (winner) return { order: winner, token };
+    }
+    throw e;
+  }
 }
 /**
  * Attaches the Razorpay order after the reservation is committed, so a slow gateway never
