@@ -77,8 +77,8 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
           </h1>
           <p className="ref-hero-description">
             {t(
-              "Easy booking. | Timely delivery or collection. |",
-              "എളുപ്പത്തിൽ ബുക്കിംഗ്. | സമയബന്ധിത വിതരണമോ ശേഖരണമോ. |",
+              "Easy booking. | Timely delivery or collection.",
+              "എളുപ്പത്തിൽ ബുക്കിംഗ്. | സമയബന്ധിത വിതരണമോ ശേഖരണമോ.",
             )}
             <br />
             {t(

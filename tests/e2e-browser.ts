@@ -116,6 +116,37 @@ async function main() {
     }
     step("all pages in 4 languages at 5 widths");
 
+    // Design: browser zoom-out and huge screens keep proportions; cards stay even and readable.
+    for (const width of [360, 768, 1024, 1366, 1920, 3840, 7680]) {
+      const design = await browser.newPage({ viewport: { width, height: 900 } });
+      for (const path of ["/", "/products"]) {
+        await design.goto(origin + path, { waitUntil: "load" });
+        // The page streams in; measure only once the cards are really on screen.
+        await design.locator(".reference-site article .product-actions .button").first().waitFor();
+        const m = await design.evaluate(() => {
+          const cards = [...document.querySelectorAll("article")];
+          return {
+            widths: cards.map((c) => Math.round(c.getBoundingClientRect().width)),
+            imageWidest: Math.max(...cards.map((c) => c.querySelector("img")!.getBoundingClientRect().width)),
+            buttonFont: Math.min(...cards.map((c) => parseFloat(getComputedStyle(c.querySelector(".product-actions .button")!).fontSize))),
+            buttonHeight: Math.min(...cards.map((c) => c.querySelector(".product-actions .button")!.getBoundingClientRect().height)),
+            rows: new Set(cards.map((c) => Math.round(c.getBoundingClientRect().top))).size,
+            overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          };
+        });
+        const label = `${path} @${width}`;
+        if (m.overflow > 1) note(`overflow ${label}: ${m.overflow}`);
+        if (new Set(m.widths).size !== 1) note(`uneven card widths ${label}: ${m.widths}`);
+        if (m.widths[0] > 480) note(`card too wide ${label}: ${m.widths[0]}`);
+        if (m.imageWidest > 480) note(`image too wide ${label}: ${m.imageWidest}`);
+        if (m.buttonFont < 14) note(`small button text ${label}: ${m.buttonFont}px`);
+        if (m.buttonHeight < 44) note(`small button ${label}: ${m.buttonHeight}px`);
+        if (width >= 1920 && m.rows !== 1) note(`cards should fit one row ${label}: ${m.rows}`);
+      }
+      await design.close();
+    }
+    step("cards stay even, bounded and readable from 360 to 7680 px");
+
     // The language switch applies without a reload and survives navigation.
     const context = await browser.newContext({ viewport: { width: 360, height: 780 } });
     const page = await context.newPage();

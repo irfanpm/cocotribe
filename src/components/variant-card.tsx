@@ -11,7 +11,7 @@ export function VariantCard({variants,number,reference=false}:{variants:ProductV
  const p=variants.find(item=>item.id===selected)||variants[0];
  const name=t(p.nameEn,p.nameMl).split(' · ')[0];
  return <article className={reference?'ref-product-card':'product-card'}>
-  <Link href={`/products/${p.slug}`}><Image src={p.image} alt={name} className={reference?'ref-product-photo':'product-img'} width={600} height={450} sizes="(max-width: 640px) 92vw, (max-width: 1100px) 45vw, 300px"/></Link>
+  <Link href={`/products/${p.slug}`}><Image src={p.image} alt={name} className={reference?'ref-product-photo':'product-img'} width={600} height={450} sizes="(max-width: 520px) 92vw, (max-width: 859px) 46vw, (max-width: 1339px) 31vw, 280px"/></Link>
   <div className="product-info">
    <h3><Link href={`/products/${p.slug}`}>{name}</Link></h3>
    <label className="variant-field">{t('Choose pack / size','പാക്ക് / അളവ് തിരഞ്ഞെടുക്കുക')}

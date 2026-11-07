@@ -6,6 +6,7 @@ import "./globals.css";
 import "./reference.css";
 import "./custom.css";
 import "./inner-pages.css";
+import "./design-refresh.css";
 import { LanguageProvider, type Locale } from "@/components/language";
 import { Shell } from "@/components/reference-shell";
 import { getCatalog } from "@/lib/catalog";

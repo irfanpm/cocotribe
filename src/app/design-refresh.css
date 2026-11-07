@@ -1,0 +1,658 @@
+/*
+ * Layout and type system for the customer site. Loaded last, over the older stylesheets.
+ * Same brand: ivory, coconut green, earthy brown and restrained gold.
+ *
+ * - Content stops at 1440px and centres, so wide screens and browser zoom-out keep their proportions.
+ * - Backgrounds of full-width bands still reach the screen edges through --gutter.
+ * - Product cards have one width per row count, and an unfinished last row centres.
+ * - Nothing customers need to read is below 12px.
+ */
+:root {
+  --ct-green: #214b2c;
+  --ct-ink: #1c3523;
+  --ct-muted: #596057;
+  --ct-brown: #754316;
+  --ct-line: #e9e2d4;
+  --ct-card: #fffdf9;
+  --ct-ivory: #f8f5ed;
+  /* Percent resolves against each element's own container, so nested bands stay aligned. */
+  --ct-gutter: max(3.3%, calc((100% - 1440px) / 2));
+}
+
+/* ---------- Product cards: home and products pages ---------- */
+:root .reference-site :is(.ref-product-grid, .catalog-grid) {
+  --cols: 5;
+  --gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: var(--gap);
+  max-width: none;
+}
+:root .reference-site :is(.ref-product-card, .product-card) {
+  flex: 0 0 calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  background: var(--ct-card);
+  border: 1px solid var(--ct-line);
+  border-radius: 14px;
+  box-shadow: 0 2px 10px #53391809;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+@media (hover: hover) {
+  :root .reference-site :is(.ref-product-card, .product-card):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 26px #53391818;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root .reference-site :is(.ref-product-card, .product-card) {
+    transition: none;
+  }
+  :root .reference-site :is(.ref-product-card, .product-card):hover {
+    transform: none;
+  }
+}
+:root .reference-site :is(.ref-product-card, .product-card) > a {
+  display: block;
+}
+:root .reference-site :is(img.ref-product-photo, img.product-img) {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 0;
+  background: #f1ecdf;
+}
+:root .reference-site :is(.ref-product-card, .product-card) > .product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 16px 18px 18px;
+}
+:root .reference-site :is(.ref-product-card, .product-card) .product-info h3 {
+  margin: 0 0 10px;
+  font-family: Georgia, "Noto Sans Malayalam", serif;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ct-ink);
+  white-space: normal;
+}
+:root .reference-site .product-info .variant-field {
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--ct-muted);
+}
+:root .reference-site .product-info .variant-field select {
+  min-height: 46px;
+  padding: 9px 10px;
+  font-size: 14px;
+  color: var(--ct-green);
+  text-overflow: ellipsis;
+}
+:root .reference-site :is(.ref-product-card, .product-card) .product-info p {
+  min-height: 0;
+  margin: 12px 0 16px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ct-muted);
+}
+:root .reference-site :is(.ref-product-card, .product-card) .product-info .price {
+  display: block;
+  margin: auto 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ct-green);
+}
+:root .reference-site .product-info .product-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+:root .reference-site .product-info .product-actions :is(a, span).button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  /* The older stylesheet forces 9-12px text and small heights with !important at several widths. */
+  height: auto !important;
+  min-height: 46px !important;
+  margin: 0;
+  padding: 10px 12px !important;
+  border-radius: 10px;
+  font-size: 15px !important;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: normal;
+  text-align: center;
+}
+@media (max-width: 1339px) {
+  :root .reference-site :is(.ref-product-grid, .catalog-grid) {
+    --cols: 3;
+  }
+}
+@media (max-width: 859px) {
+  :root .reference-site :is(.ref-product-grid, .catalog-grid) {
+    --cols: 2;
+    --gap: 16px;
+  }
+}
+@media (max-width: 520px) {
+  :root .reference-site :is(.ref-product-grid, .catalog-grid) {
+    --cols: 1;
+  }
+}
+
+/* ---------- Other product photos: whole picture, no empty bars ---------- */
+:root .reference-site .coco-inner :is(.detail-grid, .booking-aside) > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #f1ecdf;
+}
+:root .reference-site .coco-inner .detail-grid > img {
+  border-radius: 14px;
+}
+@media (min-width: 851px) {
+  :root .reference-site .coco-inner .detail-grid > img {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+/* ---------- Product detail ---------- */
+:root .reference-site .coco-inner .detail-grid h1 {
+  font-size: clamp(26px, 2.5vw, 34px);
+  line-height: 1.25;
+}
+:root .reference-site .coco-inner .detail-price {
+  margin: 14px 0 10px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ct-green);
+}
+:root .reference-site .coco-inner .detail-price small {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ct-muted);
+}
+:root .reference-site .coco-inner .detail-grid .button-row {
+  flex-wrap: wrap;
+  margin: 20px 0 14px;
+}
+
+/* ---------- Shared section headings ---------- */
+:root .reference-site .reference-home .ref-section-heading {
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+:root .reference-site .reference-home .ref-section-heading h2,
+:root .reference-site .reference-home :is(.ref-how-title, .ref-trust-title, .ref-faq-heading) h2 {
+  font-size: clamp(23px, 2vw, 28px);
+  line-height: 1.2;
+  white-space: normal;
+}
+:root .reference-site .reference-home .ref-section-heading p,
+:root .reference-site .reference-home :is(.ref-how-title, .ref-trust-title, .ref-faq-heading) p {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ct-muted);
+}
+:root .reference-site .reference-home :is(.ref-section-heading, .ref-faq-heading) > a {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ct-green);
+  white-space: nowrap;
+}
+
+/* ---------- Steps ---------- */
+:root .reference-site .reference-home .ref-how {
+  padding-block: 26px;
+}
+:root .reference-site .reference-home .ref-step h3 {
+  margin-bottom: 3px;
+  font-family: "DM Sans", "Noto Sans Malayalam", Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0;
+  color: var(--ct-ink);
+}
+:root .reference-site .reference-home .ref-step p {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ct-muted);
+}
+
+/* ---------- Secondary services and payment ---------- */
+:root .reference-site .reference-home .ref-commerce {
+  padding-block: 40px;
+  gap: 40px 32px;
+}
+:root .reference-site .reference-home .ref-service {
+  height: auto;
+  min-height: 92px;
+  padding: 16px;
+  gap: 14px;
+  align-items: center;
+  border-radius: 12px;
+}
+:root .reference-site .reference-home .ref-service h3 {
+  margin-bottom: 3px;
+  font-family: "DM Sans", "Noto Sans Malayalam", Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: normal;
+}
+:root .reference-site .reference-home .ref-service p {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ct-muted);
+}
+:root .reference-site .reference-home .ref-payment-card {
+  min-height: 0;
+  padding: 18px;
+  border-radius: 12px;
+}
+:root .reference-site .reference-home .ref-payment-card > strong {
+  font-size: 14px;
+}
+:root .reference-site .reference-home .ref-delivery:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+:root .reference-site .reference-home .ref-delivery h3 {
+  font-size: 15px;
+}
+:root .reference-site .reference-home .ref-delivery p {
+  font-size: 13.5px;
+  color: var(--ct-muted);
+}
+
+/* ---------- Why choose us and WhatsApp help ---------- */
+:root .reference-site .reference-home .ref-trust {
+  display: grid;
+  grid-template-columns: minmax(190px, 240px) minmax(0, 1fr);
+  gap: 28px 40px;
+  height: auto;
+  padding-block: 40px;
+}
+:root .reference-site .reference-home .ref-trust-title {
+  width: auto;
+}
+:root .reference-site .reference-home .ref-reasons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+  gap: 24px;
+}
+:root .reference-site .reference-home .ref-reason {
+  align-items: flex-start;
+  gap: 12px;
+}
+:root .reference-site .reference-home .ref-reason h3 {
+  margin-bottom: 4px;
+  font-family: "DM Sans", "Noto Sans Malayalam", Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: normal;
+}
+:root .reference-site .reference-home .ref-reason p {
+  max-width: none;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ct-muted);
+}
+:root .reference-site .reference-home .ref-whatsapp-band {
+  grid-column: 1 / -1;
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 20px 24px;
+  gap: 16px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(105deg, #27724a, var(--ct-green));
+}
+:root .reference-site .reference-home .ref-whatsapp-band h3 {
+  margin-bottom: 3px;
+  font-family: "DM Sans", "Noto Sans Malayalam", Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: normal;
+}
+:root .reference-site .reference-home .ref-whatsapp-band p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #eef5ee;
+}
+:root .reference-site .reference-home .ref-chat-pill {
+  flex-shrink: 0;
+  min-height: 46px;
+  padding: 10px 22px;
+  font-size: 15px;
+}
+@media (max-width: 1100px) {
+  :root .reference-site .reference-home .ref-trust {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+  :root .reference-site .reference-home .ref-reasons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- FAQ ---------- */
+:root .reference-site .reference-home .ref-faq {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px 40px;
+  padding-block: 44px;
+}
+:root .reference-site .reference-home .ref-faq-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+:root .reference-site .reference-home .ref-faq-items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 12px;
+}
+:root .reference-site .reference-home .ref-faq-items button {
+  min-height: 58px;
+  padding: 12px 16px;
+  border-color: var(--ct-line);
+  border-radius: 10px;
+  background: var(--ct-card);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: normal;
+  color: var(--ct-ink);
+}
+:root .reference-site .reference-home .ref-faq-answer {
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  color: var(--ct-muted);
+}
+
+/* ---------- Footer ---------- */
+:root .reference-site .ref-footer :is(h3) {
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+:root .reference-site .ref-footer-links > div {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(4, auto);
+  gap: 4px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+:root .reference-site .ref-footer-links a {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+}
+:root .reference-site .ref-footer-contact > :is(a, p) {
+  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+:root .reference-site .ref-footer-contact > :is(a, p) svg {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+}
+:root .reference-site .ref-footer-contact .ref-footer-wa {
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #f3ebd4;
+}
+:root .reference-site .ref-footer :is(.ref-footer-motto, .ref-footer-good) p {
+  font-size: 15px;
+  line-height: 1.4;
+}
+:root .reference-site .ref-footer :is(.ref-footer-motto, .ref-footer-good) > svg {
+  width: 34px;
+  height: 34px;
+}
+:root .reference-site .ref-footer-bottom {
+  flex-wrap: wrap;
+  padding-block: 12px;
+  font-size: 12.5px;
+}
+:root .reference-site .ref-site-notice {
+  padding-block: 0 14px;
+  font-size: 12.5px;
+}
+
+/* ---------- Desktop layout: centred content inside full-width bands ---------- */
+@media (min-width: 851px) {
+  :root .reference-site .ref-header,
+  :root .reference-site .reference-home :is(.ref-how, .ref-commerce, .ref-trust, .ref-faq),
+  :root .reference-site :is(.ref-footer-main, .ref-footer-bottom) {
+    padding-inline: var(--ct-gutter);
+  }
+
+  /* Hero: the copy panel runs the full height, so the photo has no cut edge beneath it. */
+  :root .reference-site .reference-home .ref-hero {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    max-width: 2400px;
+    min-height: clamp(400px, 30vw, 600px);
+    margin-inline: auto;
+    padding: 0;
+  }
+  :root .reference-site .reference-home .ref-hero .ref-hero-copy {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    justify-content: center;
+    width: min(calc(var(--ct-gutter) + 720px), 60%);
+    max-width: none;
+    padding: 40px 40px 40px var(--ct-gutter);
+    background: linear-gradient(90deg, var(--ct-ivory) 70%, #f8f5edd9 86%, transparent);
+  }
+  :root .reference-site .reference-home .ref-hero h1 {
+    max-width: none;
+    margin-bottom: 12px;
+    font-size: clamp(32px, 3vw, 44px);
+    line-height: 1.12;
+  }
+  :root .reference-site .reference-home .ref-hero .ref-hero-buttons {
+    margin: 16px 0 18px;
+  }
+  :root .reference-site .reference-home .ref-hero .ref-hero-buttons .button {
+    min-height: 48px;
+    font-size: 15px;
+    white-space: normal;
+  }
+
+  :root .reference-site .ref-footer-main {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.1fr) minmax(200px, 1fr) minmax(230px, 1.2fr) minmax(170px, 0.8fr);
+    grid-template-rows: auto 1fr;
+    align-items: start;
+    gap: 16px 36px;
+    padding-block: 40px 32px;
+  }
+  :root .reference-site .ref-footer-brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  :root .reference-site .ref-footer-motto {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+    gap: 12px;
+    border: 0;
+  }
+  :root .reference-site .ref-footer-links {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    width: auto;
+  }
+  :root .reference-site .ref-footer-contact {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    width: auto;
+  }
+  :root .reference-site .ref-footer-good {
+    grid-column: 4;
+    grid-row: 1 / 3;
+    width: auto;
+    gap: 12px;
+    padding-left: 24px;
+  }
+}
+@media (min-width: 851px) and (max-width: 1100px) {
+  :root .reference-site .ref-footer-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+  }
+  :root .reference-site :is(.ref-footer-brand, .ref-footer-motto, .ref-footer-links, .ref-footer-contact, .ref-footer-good) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  :root .reference-site .ref-footer-good {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+/* Beyond the photo's useful width, its sides fade into the page rather than ending in a hard edge. */
+@media (min-width: 2401px) {
+  :root .reference-site .reference-home .ref-hero {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 120px, #000 calc(100% - 120px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 120px, #000 calc(100% - 120px), transparent);
+  }
+}
+/* The old decorative overlay sat on top of the coconut photo. */
+:root .reference-site .ref-tradition {
+  display: none;
+}
+
+/* Longer translated names keep every card's pack selector on the same line. */
+html:is([lang="ml"], [lang="ta"], [lang="hi"]) .reference-site :is(.ref-product-card, .product-card) .product-info h3 {
+  min-height: 2.6em;
+}
+@media (max-width: 520px) {
+  html:is([lang="ml"], [lang="ta"], [lang="hi"]) .reference-site :is(.ref-product-card, .product-card) .product-info h3 {
+    min-height: 0;
+  }
+}
+/* The Tamil call to action is long: one line when it fits, otherwise the hero and menu carry it. */
+html[lang="ta"] .reference-site .ref-header .ref-gold-button {
+  max-width: none;
+  white-space: nowrap;
+}
+@media (max-width: 1599px) {
+  html[lang="ta"] .reference-site .ref-header .ref-gold-button {
+    display: none;
+  }
+}
+/* A tablet-width booking summary should not be dominated by its photo. */
+@media (min-width: 521px) and (max-width: 850px) {
+  :root .reference-site .coco-inner .booking-aside > img {
+    max-width: 420px;
+    margin: 20px auto 0;
+    border-radius: 10px;
+  }
+}
+/* Both hero buttons match at every width; the older stylesheet shrinks one with !important. */
+:root .reference-site .reference-home .ref-hero .ref-hero-buttons .button {
+  font-size: 15px !important;
+}
+:root .reference-site .reference-home .ref-step .ref-circle {
+  overflow: hidden;
+}
+
+/* ---------- Phone and tablet ---------- */
+@media (max-width: 850px) {
+  :root .reference-site .ref-footer-main {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: start;
+  }
+  :root .reference-site .ref-footer-brand {
+    grid-column: 1 / -1;
+  }
+  :root .reference-site .ref-footer-links,
+  :root .reference-site .ref-footer-contact {
+    width: auto;
+  }
+  :root .reference-site :is(.ref-footer-motto, .ref-footer-good) {
+    display: none;
+  }
+  :root .reference-site .reference-home :is(.ref-trust, .ref-faq) {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 30px 20px;
+  }
+  :root .reference-site .reference-home .ref-commerce {
+    padding: 28px 16px;
+  }
+  :root .reference-site .reference-home .ref-faq-items {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :root .reference-site .reference-home .ref-whatsapp-band {
+    flex-wrap: wrap;
+  }
+  :root .reference-site .reference-home .ref-whatsapp-band > div {
+    flex: 1 1 200px;
+  }
+  :root .reference-site .reference-home .ref-chat-pill {
+    width: 100%;
+    justify-content: center;
+  }
+}
+@media (max-width: 520px) {
+  :root .reference-site .ref-footer-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :root .reference-site .reference-home .ref-reasons {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :root .reference-site .reference-home .ref-section-heading {
+    flex-wrap: wrap;
+  }
+}

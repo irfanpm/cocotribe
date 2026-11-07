@@ -200,7 +200,7 @@ export const translations: Record<string, {ta: string; hi: string}> = {
     "ta": "தூய தேங்காய்கள். அர்த்தமுள்ள தரிசனம்.",
     "hi": "शुद्ध नारियल। एक सार्थक यात्रा।"
   },
-  "Easy booking. | Timely delivery or collection. |": {
+  "Easy booking. | Timely delivery or collection.": {
     "ta": "எளிய முன்பதிவு. நேரத்திற்கேற்ற விநியோகம் அல்லது சேகரிப்பு.",
     "hi": "आसान बुकिंग। समय पर डिलीवरी या संग्रह।"
   },
