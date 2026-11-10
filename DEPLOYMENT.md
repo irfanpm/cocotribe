@@ -156,3 +156,44 @@ RUN_DATABASE_TESTS=1 npx tsx tests/http-smoke.ts
 ```bash
 RUN_DATABASE_TESTS=1 npx tsx tests/e2e-browser.ts
 ```
+
+## 9. WhatsApp order alerts to the owner
+
+The owner's WhatsApp receives an alert when:
+
+- a Pay at Delivery booking is placed;
+- an online booking is paid; or
+- staff change an order to **Confirmed**.
+
+Online bookings alert only once they are paid, not while the customer is still at checkout. A retried request or a repeated Razorpay webhook never sends a second alert. Alerts are sent after the customer's response, so a WhatsApp problem never blocks a booking. Failures are logged.
+
+Alerts use Meta's official **WhatsApp Cloud API**. Messages a business starts must use a template Meta has approved, and Meta charges per delivered message (see Meta's rate card for India).
+
+1. In [Meta for Developers](https://developers.facebook.com/), create an app with the **Connect with customers through WhatsApp** use case and a business portfolio.
+2. Choose the number that **sends** the alerts. This must be a business number on the Cloud API, not the owner's own phone. Meta's test number works for trying it out. For permanent use, add a business phone number.
+3. In WhatsApp Manager, create a template:
+   - **Name:** `booking_alert`
+   - **Category:** Utility
+   - **Language:** English (`en`)
+   - **Body:** exactly this text, with seven variables in this order:
+
+   ```text
+   COCOTRIBE alert: {{1}}. Booking {{2}}. Customer {{3}}. Order {{4}}. Visit {{5}}. Payment {{6}}. Total {{7}}.
+   ```
+
+   Example values for Meta's review: `New booking`, `KT-1A2B3C4D5E`, `Asha (+919000090000)`, `2 x Pooja Coconut · Mini Pack (2 pcs)`, `2026-11-20, 06:00 – 09:00 IST`, `Pay at Delivery, pending`, `Rs 100`.
+4. Create a **system user** in Business Settings and generate a **permanent** access token with WhatsApp messaging permission. Temporary tokens expire quickly.
+5. Set these in Vercel (Production), then redeploy:
+
+   | Variable | Value |
+   |---|---|
+   | `WHATSAPP_TOKEN` | The permanent token. Secret. |
+   | `WHATSAPP_PHONE_NUMBER_ID` | The sending number's Phone Number ID from API Setup. |
+   | `OWNER_WHATSAPP` | `918111935267` (country code and number, no `+`). |
+   | `WHATSAPP_TEMPLATE` | Optional. Defaults to `booking_alert`. |
+   | `WHATSAPP_TEMPLATE_LANG` | Optional. Defaults to `en`. Must match the template's language. |
+
+6. With Meta's test number, add `+91 81119 35267` as an allowed recipient in API Setup.
+7. In **Admin > Website settings > WhatsApp order alerts**, press **Send test alert**. If WhatsApp refuses it, Meta's reason is shown there, for example a wrong template name or an expired token.
+
+Customer names, phone numbers and orders pass through Meta to deliver these alerts. Mention this in the privacy policy if required.

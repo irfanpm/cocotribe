@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { Prisma } from "@prisma/client";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
@@ -12,6 +12,7 @@ import {
 } from "@/lib/validation";
 import { serial } from "@/lib/orders";
 import { orderChangeError } from "@/lib/order-rules";
+import { notifyOwner, type BookingAlert } from "@/lib/notify";
 /** Field-level before/after values for the audit trail. Only submitted fields are compared. */
 function changes(before: object | null, after: object) {
   const old = (before || {}) as Record<string, unknown>;
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
       })
       .parse(await body(request));
     const { kind, id } = input;
+    let alert: BookingAlert | null = null;
     const entity = await serial(async (tx) => {
       let saved: unknown = null;
       let details: Record<string, unknown> = {};
@@ -125,6 +127,7 @@ export async function POST(request: Request) {
           },
         });
         details = changes(o, data);
+        alert = data.status === "CONFIRMED" && o.status !== "CONFIRMED" ? { ...o, ...data, event: "CONFIRMED" } : null;
       }
       await tx.auditLog.create({
         data: {
@@ -138,6 +141,10 @@ export async function POST(request: Request) {
     });
     revalidateTag("catalog", { expire: 0 });
     revalidatePath("/", "layout");
+    if (alert) {
+      const confirmed = alert;
+      after(() => notifyOwner(confirmed));
+    }
     return NextResponse.json(
       { ok: true, entity },
       { headers: { "Cache-Control": "no-store" } },

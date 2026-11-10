@@ -75,6 +75,7 @@ export async function createBooking(data: z.infer<typeof bookingSchema>) {
     return {
       order: await db.order.findUniqueOrThrow({ where: { id: state.existingId } }),
       token,
+      created: false,
     };
   const { product, slot, settings } = state;
   if (!settings) throw new AppError("SERVICE_UNAVAILABLE", 503);
@@ -148,14 +149,14 @@ export async function createBooking(data: z.infer<typeof bookingSchema>) {
         ),
       RETRYABLE,
     );
-    return { order, token };
+    return { order, token, created: true };
   } catch (e) {
     // The same request arriving twice at once: the insert rolled back, so return the winner.
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       const winner = await db.order.findUnique({
         where: { requestKey: data.requestKey },
       });
-      if (winner) return { order: winner, token };
+      if (winner) return { order: winner, token, created: false };
     }
     throw e;
   }
@@ -227,7 +228,18 @@ export async function markCaptured(
   amount: number,
   currency: string,
 ) {
-  return serial(async (tx) => {
+  return (await recordCapture(razorpayOrderId, paymentId, amount, currency)).order;
+}
+/** Like markCaptured, and also says whether this call is the one that turned the order paid. */
+export async function recordCapture(
+  razorpayOrderId: string,
+  paymentId: string,
+  amount: number,
+  currency: string,
+) {
+  let firstCapture = false;
+  const order = await serial(async (tx) => {
+    firstCapture = false;
     const o = await tx.order.findUnique({ where: { razorpayOrderId } });
     if (!o) throw new AppError("NOT_FOUND", 404);
     if (o.total !== amount || currency !== "INR")
@@ -238,6 +250,7 @@ export async function markCaptured(
         await reportIssue("payments", "SECOND_CAPTURE_NEEDS_REFUND", { bookingId: o.bookingId });
       return o;
     }
+    firstCapture = o.status !== "CANCELLED";
     return tx.order.update({
       where: { id: o.id },
       data: {
@@ -248,6 +261,7 @@ export async function markCaptured(
       },
     });
   });
+  return { order, firstCapture };
 }
 export async function getPrivateOrder(id: string, token: string) {
   if (!/^[a-f0-9]{64}$/.test(token)) throw new AppError("NOT_FOUND", 404);

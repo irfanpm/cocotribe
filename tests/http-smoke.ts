@@ -4,6 +4,7 @@
  */
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { createServer } from "node:http";
 import { randomUUID, randomBytes, createHmac } from "node:crypto";
 import { hash as passwordHash } from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
@@ -36,6 +37,21 @@ async function main() {
   });
   const webhookSecret = randomBytes(32).toString("hex");
   const cronSecret = randomBytes(32).toString("hex");
+  // A stand-in for Meta's WhatsApp API that records what would have been sent.
+  const alerts: { path: string; auth?: string; body: { to: string; template: { name: string; components: { parameters: { text: string }[] }[] } } }[] = [];
+  const whatsapp = createServer((req, res) => {
+    let raw = "";
+    req.on("data", (c) => (raw += c));
+    req.on("end", () => {
+      alerts.push({ path: req.url || "", auth: req.headers.authorization, body: JSON.parse(raw) });
+      res.writeHead(200, { "Content-Type": "application/json" }).end('{"messages":[{"id":"wamid.test"}]}');
+    });
+  }).listen(3999, "127.0.0.1");
+  const alertTexts = () => alerts.map((a) => a.body.template.components[0].parameters.map((p) => p.text));
+  const waitForAlerts = async (n: number) => {
+    for (let i = 0; i < 40 && alerts.length < n; i++) await new Promise((r) => setTimeout(r, 100));
+    return alerts.length;
+  };
   const server = spawn(
     process.execPath,
     [
@@ -54,6 +70,10 @@ async function main() {
         SESSION_SECRET: randomBytes(48).toString("hex"),
         RAZORPAY_WEBHOOK_SECRET: webhookSecret,
         CRON_SECRET: cronSecret,
+        WHATSAPP_TOKEN: "test-whatsapp-token",
+        WHATSAPP_PHONE_NUMBER_ID: "555",
+        OWNER_WHATSAPP: "918111935267",
+        WHATSAPP_API_BASE: "http://127.0.0.1:3999",
         // Never reach the real gateway from these tests.
         RAZORPAY_KEY_ID: "",
         RAZORPAY_KEY_SECRET: "",
@@ -163,6 +183,14 @@ async function main() {
     assert.equal(booking.order.status, "PENDING");
     const duplicate = await (await post("/api/bookings", base)).json();
     assert.equal(duplicate.order.bookingId, booking.order.bookingId);
+    assert.equal(await waitForAlerts(1), 1, "one alert for a new booking, none for the retry");
+    await new Promise((r) => setTimeout(r, 500));
+    assert.equal(alerts.length, 1, "the retried request sends no second alert");
+    assert.equal(alerts[0].path, "/555/messages");
+    assert.equal(alerts[0].auth, "Bearer test-whatsapp-token");
+    assert.equal(alerts[0].body.to, "918111935267");
+    assert.equal(alertTexts()[0][0], "New booking");
+    assert.equal(alertTexts()[0][1], booking.order.bookingId);
     assert.equal(
       (await fetch(origin + "/api/bookings/" + booking.order.bookingId)).status,
       404,
@@ -199,6 +227,7 @@ async function main() {
       ).status,
       409,
     );
+    const alertsBeforeConfirm = alerts.length;
     for (const status of ["CONFIRMED", "PREPARING", "READY"])
       assert.equal(
         (
@@ -228,6 +257,18 @@ async function main() {
       ).status,
       200,
     );
+    assert.equal(await waitForAlerts(alertsBeforeConfirm + 1), alertsBeforeConfirm + 1);
+    await new Promise((r) => setTimeout(r, 300));
+    assert.deepEqual(
+      alertTexts().slice(alertsBeforeConfirm).map((t) => t[0]),
+      ["Order confirmed"],
+      "only confirming sends an alert, not preparing, ready or completed",
+    );
+    const testAlert = await post("/api/admin/notify-test", {}, cookie);
+    assert.equal(testAlert.status, 200);
+    assert.deepEqual(await testAlert.json(), { sent: true });
+    assert.equal(alertTexts().at(-1)![0], "Test alert from the admin panel");
+    assert.equal((await post("/api/admin/notify-test", {})).status, 401, "test alert needs admin sign-in");
     assert.equal(
       (
         await post("/api/contact", {
@@ -297,8 +338,16 @@ async function main() {
     const sig = createHmac("sha256", webhookSecret)
       .update(payload)
       .digest("hex");
+    const alertsBeforePayment = alerts.length;
     assert.equal((await webhook(sig)).status, 200);
     assert.equal((await webhook(sig)).status, 200);
+    await waitForAlerts(alertsBeforePayment + 1);
+    await new Promise((r) => setTimeout(r, 500));
+    assert.deepEqual(
+      alertTexts().slice(alertsBeforePayment).map((t) => t[0]),
+      ["New booking, paid online"],
+      "a paid online booking alerts once, even when Razorpay repeats the webhook",
+    );
     assert.equal(
       (await db.order.findUniqueOrThrow({ where: { id: paymentBooking.id } }))
         .paymentStatus,
@@ -384,6 +433,7 @@ async function main() {
       "HTTP checks passed: 11 pages, origin protection, auth/cookies, price protection, booking/idempotency, private access, admin filters/transitions, contact validation, signed webhook/replay and logout revocation.",
     );
   } finally {
+    whatsapp.close();
     server.kill();
     await db.auditLog.deleteMany({ where: { adminId: admin.id } });
     await db.contactMessage.deleteMany({ where: { name: `Smoke ${tag}` } });

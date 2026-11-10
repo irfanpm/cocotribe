@@ -52,6 +52,7 @@ type AdminData = {
     createdAt: string;
   }[];
   reconcile?: { lastSuccessAt: string | null; lastError: string | null } | null;
+  ownerAlerts?: { to: string } | null;
 };
 export function AdminLogin({ demo }: { demo: boolean }) {
   const [busy, setBusy] = useState(false),
@@ -752,6 +753,39 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                 ))}
               </div>
             </>
+          )}
+          {tab === "Website settings" && (
+            <div className="panel" style={{ marginBottom: 20 }}>
+              <h2>WhatsApp order alerts</h2>
+              {data.ownerAlerts ? (
+                <>
+                  <p>New bookings, online payments and confirmed orders are sent to {data.ownerAlerts.to}.</p>
+                  <button
+                    className="button outline"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      setError("");
+                      setNotice("");
+                      try {
+                        const r = await fetch("/api/admin/notify-test", { method: "POST" });
+                        const result = await r.json();
+                        if (r.ok) setNotice("Test alert sent. Check WhatsApp on the alert number.");
+                        else setError(`WhatsApp did not accept the test alert: ${result.reason || result.error}`);
+                      } catch {
+                        setError("Could not reach the server. Please retry.");
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    {busy ? "Sending…" : "Send test alert"}
+                  </button>
+                </>
+              ) : (
+                <p className="muted">Not set up yet. Add the WhatsApp settings in Vercel to receive alerts.</p>
+              )}
+            </div>
           )}
           {tab === "Website settings" && (
             <div className="panel">

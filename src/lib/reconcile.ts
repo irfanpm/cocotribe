@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { db } from "./db";
-import { expireReservation, markCaptured } from "./orders";
+import { expireReservation, recordCapture } from "./orders";
+import { notifyOwner } from "./notify";
 import { razorpay, type GatewayPayment } from "./razorpay";
 import { reportError } from "./monitor";
 export const RECONCILE_JOB = "reconcile-payments";
@@ -30,7 +31,8 @@ export async function reconcileExpired(lookup: PaymentLookup = lookupFromRazorpa
       const payments = order.razorpayOrderId ? await lookup(order.razorpayOrderId) : [];
       const captured = payments.find((p) => p.status === "captured");
       if (captured) {
-        await markCaptured(captured.order_id, captured.id, captured.amount, captured.currency);
+        const capture = await recordCapture(captured.order_id, captured.id, captured.amount, captured.currency);
+        if (capture.firstCapture) await notifyOwner({ ...capture.order, event: "PAID" });
         result.paid++;
       } else if (payments.some((p) => p.status === "authorized")) {
         result.held++;

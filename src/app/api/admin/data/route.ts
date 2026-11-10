@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { fail } from "@/lib/http";
 import { indiaDate } from "@/lib/validation";
 import { RECONCILE_JOB } from "@/lib/reconcile";
+import { ownerAlertsConfigured } from "@/lib/notify";
 export async function GET(request: Request) {
   try {
     await requireAdmin();
@@ -93,6 +94,7 @@ export async function GET(request: Request) {
         messages,
         stats,
         audit: audit.map((a) => ({ ...a, adminEmail: emails.get(a.adminId) || "Removed admin" })),
+        ownerAlerts: ownerAlertsConfigured(),
         reconcile: job && { lastSuccessAt: job.lastSuccessAt, lastError: job.lastError },
       },
       { headers: { "Cache-Control": "no-store" } },

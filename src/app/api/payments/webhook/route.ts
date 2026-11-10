@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { checkSignature } from "@/lib/security";
 import { fail, AppError } from "@/lib/http";
-import { markCaptured } from "@/lib/orders";
+import { recordCapture } from "@/lib/orders";
+import { notifyOwner } from "@/lib/notify";
 import { reportIssue } from "@/lib/monitor";
 export async function POST(request: Request) {
   try {
@@ -23,7 +24,8 @@ export async function POST(request: Request) {
       if (!p?.id || !p?.order_id || p.status !== "captured")
         throw new AppError("INVALID_INPUT");
       try {
-        await markCaptured(p.order_id, p.id, p.amount, p.currency);
+        const result = await recordCapture(p.order_id, p.id, p.amount, p.currency);
+        if (result.firstCapture) after(() => notifyOwner({ ...result.order, event: "PAID" }));
       } catch (e) {
         // A correctly signed event that can never succeed. Retrying would not help and
         // repeated failures make Razorpay disable the webhook, so alert staff and accept it.

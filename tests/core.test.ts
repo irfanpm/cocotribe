@@ -15,6 +15,7 @@ import { safeError } from "../src/lib/monitor";
 import { clientIp } from "../src/lib/http";
 import { currentProducts } from "../src/lib/product-catalog";
 import { orderUpdateLink, orderUpdateMessage } from "../src/lib/order-messages";
+import { alertRequest, alertValues, notifyOwner, templateValue } from "../src/lib/notify";
 test("Every catalogue image path passes the admin product form", () => {
   for (const p of currentProducts)
     assert.equal(productSchema.safeParse(p).success, true, p.slug);
@@ -113,6 +114,39 @@ test("Customer update message uses their language and links to their number", ()
   const link = new URL(orderUpdateLink({ ...order, name: "A & B?" }));
   assert.equal(link.pathname, "/919000090000");
   assert.match(link.searchParams.get("text") || "", /A & B\?/, "special characters stay inside the message");
+});
+test("Owner WhatsApp alerts stay off until fully configured, then send an approved template", async () => {
+  const alert = {
+    event: "NEW_BOOKING" as const, bookingId: "KT-A1", name: "Asha\nK", phone: "919000090000",
+    productNameEn: "Pooja Coconut · Temple Pack (10 pcs)", quantity: 2, date: "2026-11-20",
+    slotLabel: "06:00 – 09:00", method: "DELIVERY", paymentStatus: "PENDING", total: 50000,
+  };
+  const saved = { ...process.env };
+  try {
+    delete process.env.WHATSAPP_TOKEN;
+    process.env.WHATSAPP_PHONE_NUMBER_ID = "123";
+    process.env.OWNER_WHATSAPP = "+91 81119 35267";
+    assert.equal(alertRequest(alert), null, "no token, no request");
+    assert.deepEqual(await notifyOwner(alert), { sent: false, reason: "NOT_CONFIGURED" });
+    process.env.WHATSAPP_TOKEN = "test-token";
+    const request = alertRequest(alert)!;
+    assert.equal(request.url, "https://graph.facebook.com/v23.0/123/messages");
+    const sent = JSON.parse(request.init.body);
+    assert.equal(sent.to, "918111935267", "owner number normalised");
+    assert.equal(sent.type, "template");
+    assert.equal(sent.template.name, "booking_alert");
+    const values = sent.template.components[0].parameters.map((p: { text: string }) => p.text);
+    assert.equal(values.length, 7);
+    assert.deepEqual(values, alertValues(alert));
+    assert.equal(values[0], "New booking");
+    assert.equal(values[2], "Asha K (+919000090000)", "line breaks removed, as Meta requires");
+    assert.equal(values[6], "Rs 500");
+    assert.ok(values.every((v: string) => !/[\n\t]| {2,}/.test(v)));
+    assert.equal(templateValue("   "), "-");
+    assert.equal(templateValue("x".repeat(500)).length, 200);
+  } finally {
+    process.env = saved;
+  }
 });
 test("Rate limiting uses the first forwarded address", () => {
   const request = new Request("https://x.test/", { headers: { "x-forwarded-for": "203.0.113.9, 10.0.0.1" } });
