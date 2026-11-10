@@ -3,14 +3,14 @@ import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fail, sameOrigin, clientIp } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
-import { notifyOwner } from "@/lib/notify";
+import { sendWhatsAppAlert } from "@/lib/notify";
 /** Sends one sample alert so the owner can check the WhatsApp setup without a real booking. */
 export async function POST(request: Request) {
   try {
     sameOrigin(request);
     const admin = await requireAdmin();
     await rateLimit("notify-test", clientIp(request), 5);
-    const result = await notifyOwner({
+    const result = await sendWhatsAppAlert({
       event: "TEST",
       bookingId: "KT-TEST",
       name: "Test customer",

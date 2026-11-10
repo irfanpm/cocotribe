@@ -5,6 +5,7 @@ import { fail } from "@/lib/http";
 import { indiaDate } from "@/lib/validation";
 import { RECONCILE_JOB } from "@/lib/reconcile";
 import { ownerAlertsConfigured } from "@/lib/notify";
+import { pushPublicKey } from "@/lib/push";
 export async function GET(request: Request) {
   try {
     await requireAdmin();
@@ -95,6 +96,7 @@ export async function GET(request: Request) {
         stats,
         audit: audit.map((a) => ({ ...a, adminEmail: emails.get(a.adminId) || "Removed admin" })),
         ownerAlerts: ownerAlertsConfigured(),
+        push: { publicKey: pushPublicKey(), devices: await db.pushSubscription.count() },
         reconcile: job && { lastSuccessAt: job.lastSuccessAt, lastError: job.lastError },
       },
       { headers: { "Cache-Control": "no-store" } },

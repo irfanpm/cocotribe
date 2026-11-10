@@ -54,6 +54,11 @@ const config: NextConfig = {
       { source: "/book", headers: privateHeaders },
       { source: "/api/:path*", headers: privateHeaders },
       {
+        // The admin app's service worker must always be fresh, or fixes would never reach phones.
+        source: "/admin-sw.js",
+        headers: [{ key: "Cache-Control", value: "no-cache, max-age=0" }],
+      },
+      {
         source: "/images/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }],
       },

@@ -5,6 +5,15 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
+import { createServer as createHttpsServer } from "node:https";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createECDH } from "node:crypto";
+import webpush from "web-push";
+// @ts-expect-error http_ece ships without types; it is web-push's own encryption library.
+import ece from "http_ece";
 import { randomUUID, randomBytes, createHmac } from "node:crypto";
 import { hash as passwordHash } from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
@@ -47,6 +56,29 @@ async function main() {
       res.writeHead(200, { "Content-Type": "application/json" }).end('{"messages":[{"id":"wamid.test"}]}');
     });
   }).listen(3999, "127.0.0.1");
+  // A stand-in for a browser push service over HTTPS, as web-push only sends to https.
+  const certDir = mkdtempSync(join(tmpdir(), "koko-push-"));
+  execFileSync("openssl", ["req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:prime256v1", "-nodes", "-keyout", join(certDir, "key.pem"), "-out", join(certDir, "cert.pem"), "-days", "1", "-subj", "/CN=127.0.0.1"], { stdio: "ignore" });
+  const pushes: { path: string; headers: Record<string, string | string[] | undefined>; body: Buffer }[] = [];
+  const pushService = createHttpsServer({ key: readFileSync(join(certDir, "key.pem")), cert: readFileSync(join(certDir, "cert.pem")) }, (req, res) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (c) => chunks.push(c));
+    req.on("end", () => {
+      pushes.push({ path: req.url || "", headers: req.headers, body: Buffer.concat(chunks) });
+      res.writeHead(req.url === "/push/gone" ? 410 : 201).end();
+    });
+  }).listen(3998, "127.0.0.1");
+  const vapid = webpush.generateVAPIDKeys();
+  const phone = createECDH("prime256v1");
+  phone.generateKeys();
+  const phoneAuth = randomBytes(16);
+  const b64url = (b: Buffer) => b.toString("base64url");
+  const readPush = (body: Buffer) =>
+    JSON.parse(ece.decrypt(body, { version: "aes128gcm", privateKey: phone, authSecret: phoneAuth }).toString("utf8"));
+  const waitForPushes = async (n: number) => {
+    for (let i = 0; i < 40 && pushes.length < n; i++) await new Promise((r) => setTimeout(r, 100));
+    return pushes.length;
+  };
   const alertTexts = () => alerts.map((a) => a.body.template.components[0].parameters.map((p) => p.text));
   const waitForAlerts = async (n: number) => {
     for (let i = 0; i < 40 && alerts.length < n; i++) await new Promise((r) => setTimeout(r, 100));
@@ -74,6 +106,12 @@ async function main() {
         WHATSAPP_PHONE_NUMBER_ID: "555",
         OWNER_WHATSAPP: "918111935267",
         WHATSAPP_API_BASE: "http://127.0.0.1:3999",
+        VAPID_PUBLIC_KEY: vapid.publicKey,
+        VAPID_PRIVATE_KEY: vapid.privateKey,
+        VAPID_SUBJECT: "mailto:test@example.invalid",
+        // Test-only: the stand-in push service is local with a self-signed certificate.
+        PUSH_ALLOW_ANY_ENDPOINT: "1",
+        NODE_TLS_REJECT_UNAUTHORIZED: "0",
         // Never reach the real gateway from these tests.
         RAZORPAY_KEY_ID: "",
         RAZORPAY_KEY_SECRET: "",
@@ -158,6 +196,24 @@ async function main() {
     assert.match(setCookie, /SameSite=strict/i);
     assert.match(setCookie, /Secure/i);
     const cookie = setCookie.split(";")[0];
+
+    // Phone notifications: only a signed-in admin can register a device.
+    const device = { endpoint: "https://127.0.0.1:3998/push/phone", keys: { p256dh: b64url(phone.getPublicKey()), auth: b64url(phoneAuth) }, label: "Android · Chrome" };
+    assert.equal((await post("/api/admin/push", device)).status, 401);
+    assert.equal((await post("/api/admin/push", device, cookie)).status, 200);
+    assert.equal(
+      (await post("/api/admin/push", { ...device, endpoint: "https://127.0.0.1:3998/push/gone" }, cookie)).status,
+      200,
+    );
+    assert.equal(await db.pushSubscription.count(), 2);
+    const pushTest = await post("/api/admin/push/test", { endpoint: device.endpoint }, cookie);
+    assert.equal(pushTest.status, 200);
+    assert.equal((await pushTest.json()).sent, 1, "the test goes only to this device");
+    assert.equal(pushes.length, 1);
+    assert.equal(readPush(pushes[0].body).title, "Test notification · ₹50");
+    assert.equal(pushes[0].headers["content-encoding"], "aes128gcm", "payload is encrypted for the phone");
+    assert.match(String(pushes[0].headers.authorization), /^vapid t=.+, k=/);
+    assert.equal(pushes[0].headers.urgency, "high");
     const base = {
       name: `Smoke ${tag}`,
       phone: "9999999999",
@@ -191,6 +247,16 @@ async function main() {
     assert.equal(alerts[0].body.to, "918111935267");
     assert.equal(alertTexts()[0][0], "New booking");
     assert.equal(alertTexts()[0][1], booking.order.bookingId);
+    // The new booking reached both registered devices; the one that left is removed.
+    assert.equal(await waitForPushes(3), 3);
+    const sent = pushes.slice(1);
+    const toPhone = sent.find((p) => p.path === "/push/phone")!;
+    const message = readPush(toPhone.body);
+    assert.match(message.title, /^New booking · ₹120$/);
+    assert.match(message.body, new RegExp(booking.order.bookingId));
+    assert.equal(message.url, "/admin?booking=" + booking.order.bookingId, "tapping opens this order");
+    for (let i = 0; i < 20 && (await db.pushSubscription.count()) !== 1; i++) await new Promise((r) => setTimeout(r, 100));
+    assert.equal(await db.pushSubscription.count(), 1, "a device that turned notifications off is forgotten");
     assert.equal(
       (await fetch(origin + "/api/bookings/" + booking.order.bookingId)).status,
       404,
@@ -422,6 +488,9 @@ async function main() {
     assert.deepEqual((audit?.details as Record<string, unknown>).price, { from: 4000, to: 4500 });
     assert.equal(await db.auditLog.count({ where: { adminId: admin.id, action: "login" } }), 1);
 
+    const del = await fetch(origin + "/api/admin/push", { method: "DELETE", headers: { Origin: origin, "Content-Type": "application/json", Cookie: cookie }, body: JSON.stringify({ endpoint: device.endpoint }) });
+    assert.equal(del.status, 200);
+    assert.equal(await db.pushSubscription.count(), 0, "turning off removes the device");
     assert.equal((await post("/api/admin/logout", {}, cookie)).status, 200);
     assert.equal(
       (await fetch(origin + "/api/admin/data", { headers: { Cookie: cookie } }))
@@ -434,6 +503,8 @@ async function main() {
     );
   } finally {
     whatsapp.close();
+    pushService.close();
+    await db.pushSubscription.deleteMany({ where: { endpoint: { startsWith: "https://127.0.0.1:3998/" } } });
     server.kill();
     await db.auditLog.deleteMany({ where: { adminId: admin.id } });
     await db.contactMessage.deleteMany({ where: { name: `Smoke ${tag}` } });

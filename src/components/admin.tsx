@@ -8,6 +8,7 @@ import { LogOut, Plus, Search, LockKeyhole, ArrowRight, X, Menu, LayoutDashboard
 import { money } from "./ui";
 import { nextOrderStatuses, nextPaymentStatuses } from "@/lib/order-rules";
 import { orderUpdateLink, orderUpdateMessage } from "@/lib/order-messages";
+import { PhoneAlerts } from "./phone-alerts";
 import type { ProductView, SlotView, FaqView, SettingsView } from "@/lib/demo";
 type AdminOrder = {
   id: string;
@@ -53,6 +54,7 @@ type AdminData = {
   }[];
   reconcile?: { lastSuccessAt: string | null; lastError: string | null } | null;
   ownerAlerts?: { to: string } | null;
+  push?: { publicKey: string | null; devices: number };
 };
 export function AdminLogin({ demo }: { demo: boolean }) {
   const [busy, setBusy] = useState(false),
@@ -286,6 +288,10 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
     };
   }, [!!editor, !!selected]);
   useEffect(() => {
+    const booking = new URLSearchParams(window.location.search).get("booking");
+    if (booking) setSearch(booking.slice(0, 40));
+  }, []);
+  useEffect(() => {
     if (!sidebarOpen) return;
     const close = (e: KeyboardEvent) => {
       if (e.key === "Escape") setSidebarOpen(false);
@@ -463,6 +469,9 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
         error ? null : <CoconutLoader />
       ) : (
         <>
+          {tab === "Orders" && !preview && data.push && (
+            <PhoneAlerts compact publicKey={data.push.publicKey} devices={data.push.devices} />
+          )}
           {tab === "Orders" && <div className="stats">
             {[
               ["todays", "Today’s bookings"],
@@ -753,6 +762,9 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                 ))}
               </div>
             </>
+          )}
+          {tab === "Website settings" && !preview && data.push && (
+            <PhoneAlerts publicKey={data.push.publicKey} devices={data.push.devices} />
           )}
           {tab === "Website settings" && (
             <div className="panel" style={{ marginBottom: 20 }}>

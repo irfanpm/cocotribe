@@ -197,3 +197,42 @@ Alerts use Meta's official **WhatsApp Cloud API**. Messages a business starts mu
 7. In **Admin > Website settings > WhatsApp order alerts**, press **Send test alert**. If WhatsApp refuses it, Meta's reason is shown there, for example a wrong template name or an expired token.
 
 Customer names, phone numbers and orders pass through Meta to deliver these alerts. Mention this in the privacy policy if required.
+
+## 10. New-order notifications on admin phones (free)
+
+The admin panel can be installed as an app. Any phone or computer that turns notifications on is notified when:
+
+- a Pay at Delivery booking is placed;
+- an online booking is paid; or
+- staff confirm an order.
+
+Tapping a notification opens that order. Notifications use the browser's own push service, cost nothing, and are encrypted so only the device can read them. They are sent after the customer's response, so a notification problem never affects a booking.
+
+**One-time server setup**
+
+1. Run this on your computer once:
+
+   ```bash
+   npx web-push generate-vapid-keys
+   ```
+
+2. In Vercel (Production), set `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` to the two printed values. The private key is a secret. Optionally set `VAPID_SUBJECT` to `mailto:your-email` or your site's `https://` address. Then redeploy.
+
+   Do not change these keys later: every device would have to turn notifications on again.
+
+3. Apply the database migration `202611100001_admin_push_subscriptions` (section 2) before deploying. It only adds one table.
+
+**On each admin phone**
+
+- **Android (Chrome):** open `https://YOUR-DOMAIN/admin`, sign in, then tap **Turn on notifications** and allow them. Use Chrome's menu, then **Add to Home screen** or **Install app**, for an app icon.
+- **iPhone (iOS 16.4 or later):** open the admin in Safari, tap **Share**, then **Add to Home Screen**. Open **COCOTRIBE Admin** from the Home Screen, sign in, and turn notifications on there. Safari tabs cannot receive notifications.
+- In **Admin > Website settings > New-order notifications**, press **Send test notification** to check it arrives.
+
+**Limits**
+
+- Some Android phones delay notifications in battery-saving mode. Allow the browser to run in the background.
+- If a phone is off for more than 12 hours, that notification may be dropped.
+- Keep checking the admin panel regularly; notifications support it but do not replace it.
+- Notifications on a locked screen show the customer's name and order. Turn off lock-screen previews on the phone if needed.
+
+WhatsApp alerts (section 9) remain available and stay off unless their settings are added.

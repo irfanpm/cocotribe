@@ -271,6 +271,13 @@ async function main() {
     await adminPage.locator('td:has-text("CONFIRMED")').first().waitFor();
     assert.equal((await db.order.findFirstOrThrow({ where: { name: "E2E Customer" } })).status, "CONFIRMED");
     step("admin login, sidebar, search, order transition; Yes saves and opens WhatsApp");
+    assert.equal(await adminPage.locator('link[rel="manifest"]').getAttribute("href"), "/admin.webmanifest");
+    const manifest = await (await fetch(origin + "/admin.webmanifest")).json();
+    assert.equal(manifest.start_url, "/admin");
+    assert.equal(manifest.display, "standalone");
+    for (const icon of manifest.icons) assert.equal((await fetch(origin + icon.src)).status, 200, icon.src);
+    assert.match((await fetch(origin + "/admin-sw.js")).headers.get("cache-control") || "", /no-cache/);
+    step("admin app is installable: manifest, icons and service worker");
 
     // Customer's open receipt updates with no reload (20-second background check).
     await page.locator('h1:has-text("Your coconuts are booked.")').waitFor({ timeout: 30000 });

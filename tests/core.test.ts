@@ -15,7 +15,8 @@ import { safeError } from "../src/lib/monitor";
 import { clientIp } from "../src/lib/http";
 import { currentProducts } from "../src/lib/product-catalog";
 import { orderUpdateLink, orderUpdateMessage } from "../src/lib/order-messages";
-import { alertRequest, alertValues, notifyOwner, templateValue } from "../src/lib/notify";
+import { alertRequest, alertValues, sendWhatsAppAlert, templateValue } from "../src/lib/notify";
+import { allowedPushEndpoint, pushMessage } from "../src/lib/push";
 test("Every catalogue image path passes the admin product form", () => {
   for (const p of currentProducts)
     assert.equal(productSchema.safeParse(p).success, true, p.slug);
@@ -127,7 +128,7 @@ test("Owner WhatsApp alerts stay off until fully configured, then send an approv
     process.env.WHATSAPP_PHONE_NUMBER_ID = "123";
     process.env.OWNER_WHATSAPP = "+91 81119 35267";
     assert.equal(alertRequest(alert), null, "no token, no request");
-    assert.deepEqual(await notifyOwner(alert), { sent: false, reason: "NOT_CONFIGURED" });
+    assert.deepEqual(await sendWhatsAppAlert(alert), { sent: false, reason: "NOT_CONFIGURED" });
     process.env.WHATSAPP_TOKEN = "test-token";
     const request = alertRequest(alert)!;
     assert.equal(request.url, "https://graph.facebook.com/v23.0/123/messages");
@@ -146,6 +147,26 @@ test("Owner WhatsApp alerts stay off until fully configured, then send an approv
     assert.equal(templateValue("x".repeat(500)).length, 200);
   } finally {
     process.env = saved;
+  }
+});
+test("Admin phone notifications: readable message, opens the order, only real push services", () => {
+  const m = pushMessage({
+    event: "NEW_BOOKING", bookingId: "KT-AB12", name: "Asha", phone: "919000090000",
+    productNameEn: "Pooja Coconut · Temple Pack (10 pcs)", quantity: 2, date: "2026-11-20",
+    slotLabel: "06:00 – 09:00", method: "DELIVERY", paymentStatus: "PENDING", total: 50000,
+  });
+  assert.equal(m.title, "New booking · ₹500");
+  assert.match(m.body, /Asha · 2 × Pooja Coconut Temple Pack \(10 pcs\) · 2026-11-20, 06:00 – 09:00 · KT-AB12/);
+  assert.equal(m.url, "/admin?booking=KT-AB12");
+  const saved = process.env.PUSH_ALLOW_ANY_ENDPOINT;
+  delete process.env.PUSH_ALLOW_ANY_ENDPOINT;
+  try {
+    for (const ok of ["https://fcm.googleapis.com/fcm/send/abc", "https://web.push.apple.com/QK", "https://updates.push.services.mozilla.com/wpush/v2/x", "https://wns2-par02p.notify.windows.com/w/?token=x"])
+      assert.equal(allowedPushEndpoint(ok), true, ok);
+    for (const bad of ["http://fcm.googleapis.com/x", "https://evil.test/push", "https://fcm.googleapis.com.evil.test/x", "https://127.0.0.1/x", "not a url"])
+      assert.equal(allowedPushEndpoint(bad), false, bad);
+  } finally {
+    if (saved !== undefined) process.env.PUSH_ALLOW_ANY_ENDPOINT = saved;
   }
 });
 test("Rate limiting uses the first forwarded address", () => {

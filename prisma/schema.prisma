@@ -142,3 +142,13 @@ model JobRun {
   lastError String?
   lastResult Json?
 }
+model PushSubscription {
+  id String @id @default(cuid())
+  endpoint String @unique
+  p256dh String
+  auth String
+  adminId String
+  label String @default("")
+  createdAt DateTime @default(now())
+  lastSentAt DateTime?
+}

@@ -1,4 +1,5 @@
 import { reportError, reportIssue } from "./monitor";
+import { sendPushToAdmins } from "./push";
 
 /**
  * WhatsApp alerts to the business owner through Meta's WhatsApp Cloud API.
@@ -92,7 +93,7 @@ export function alertRequest(a: BookingAlert) {
   };
 }
 export type AlertResult = { sent: boolean; reason?: string };
-export async function notifyOwner(a: BookingAlert): Promise<AlertResult> {
+export async function sendWhatsAppAlert(a: BookingAlert): Promise<AlertResult> {
   const request = alertRequest(a);
   if (!request) return { sent: false, reason: "NOT_CONFIGURED" };
   try {
@@ -107,4 +108,9 @@ export async function notifyOwner(a: BookingAlert): Promise<AlertResult> {
     await reportError("owner-alert", error, { bookingId: a.bookingId });
     return { sent: false, reason: "UNREACHABLE" };
   }
+}
+/** Every alert channel that is set up: admin phone notifications and WhatsApp. One failing never stops the other. */
+export async function notifyOwner(a: BookingAlert) {
+  const [whatsapp] = await Promise.allSettled([sendWhatsAppAlert(a), sendPushToAdmins(a)]);
+  return whatsapp.status === "fulfilled" ? whatsapp.value : { sent: false, reason: "UNREACHABLE" };
 }
