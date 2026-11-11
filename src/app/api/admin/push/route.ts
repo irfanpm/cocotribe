@@ -17,15 +17,18 @@ export async function POST(request: Request) {
     sameOrigin(request);
     const admin = await requireAdmin();
     const data = subscription.parse(await body(request));
-    if (!allowedPushEndpoint(data.endpoint)) throw new AppError("INVALID_INPUT");
+    if (!allowedPushEndpoint(data.endpoint)) throw new AppError("PUSH_SERVICE_NOT_ALLOWED");
+    // The admin page re-saves its device on every visit; only a new device is logged.
+    const known = await db.pushSubscription.findUnique({ where: { endpoint: data.endpoint }, select: { id: true } });
     await db.pushSubscription.upsert({
       where: { endpoint: data.endpoint },
       create: { endpoint: data.endpoint, p256dh: data.keys.p256dh, auth: data.keys.auth, adminId: admin.id, label: data.label },
       update: { p256dh: data.keys.p256dh, auth: data.keys.auth, adminId: admin.id, label: data.label },
     });
-    await db.auditLog.create({
-      data: { adminId: admin.id, action: "push:turned-on", entityId: admin.id, details: { device: data.label } },
-    });
+    if (!known)
+      await db.auditLog.create({
+        data: { adminId: admin.id, action: "push:turned-on", entityId: admin.id, details: { device: data.label } },
+      });
     return NextResponse.json({ ok: true, devices: await db.pushSubscription.count() }, { headers });
   } catch (e) {
     return fail(e);

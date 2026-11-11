@@ -60,7 +60,8 @@ export function pushMessage(a: BookingAlert) {
 }
 export async function sendPushToAdmins(a: BookingAlert, onlyEndpoint?: string) {
   const c = config();
-  const result = { sent: 0, removed: 0, failed: 0, devices: 0 };
+  // statuses: what the push service answered for failed sends (e.g. 403), to explain a failure.
+  const result = { sent: 0, removed: 0, failed: 0, devices: 0, statuses: [] as number[] };
   if (!c) return { ...result, reason: "NOT_CONFIGURED" as const };
   const subscriptions = await db.pushSubscription.findMany(
     onlyEndpoint ? { where: { endpoint: onlyEndpoint } } : undefined,
@@ -86,6 +87,7 @@ export async function sendPushToAdmins(a: BookingAlert, onlyEndpoint?: string) {
           await db.pushSubscription.deleteMany({ where: { id: s.id } });
         } else {
           result.failed++;
+          result.statuses.push(status ?? 0);
           await reportError("admin-push", error, { status, bookingId: a.bookingId });
         }
       }

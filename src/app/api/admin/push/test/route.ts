@@ -27,7 +27,16 @@ export async function POST(request: Request) {
       },
       endpoint,
     );
-    return NextResponse.json(result, {
+    const reason = result.sent
+      ? undefined
+      : "reason" in result
+        ? result.reason
+        : !result.devices
+          ? "NOT_REGISTERED"
+          : result.removed
+            ? "EXPIRED"
+            : "PUSH_REJECTED";
+    return NextResponse.json({ ...result, reason }, {
       status: result.sent ? 200 : 502,
       headers: { "Cache-Control": "no-store" },
     });

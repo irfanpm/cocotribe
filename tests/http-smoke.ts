@@ -491,6 +491,16 @@ async function main() {
     const del = await fetch(origin + "/api/admin/push", { method: "DELETE", headers: { Origin: origin, "Content-Type": "application/json", Cookie: cookie }, body: JSON.stringify({ endpoint: device.endpoint }) });
     assert.equal(del.status, 200);
     assert.equal(await db.pushSubscription.count(), 0, "turning off removes the device");
+    // A device the server does not know is reported so the page can save it again.
+    const unregistered = await post("/api/admin/push/test", { endpoint: device.endpoint }, cookie);
+    assert.equal(unregistered.status, 502);
+    assert.equal((await unregistered.json()).reason, "NOT_REGISTERED");
+    // The page re-saves its device on every visit; that is logged once, not every time.
+    const turnedOn = () => db.auditLog.count({ where: { action: "push:turned-on" } });
+    const before = await turnedOn();
+    assert.equal((await post("/api/admin/push", device, cookie)).status, 200);
+    assert.equal((await post("/api/admin/push", device, cookie)).status, 200);
+    assert.equal(await turnedOn(), before + 1);
     assert.equal((await post("/api/admin/logout", {}, cookie)).status, 200);
     assert.equal(
       (await fetch(origin + "/api/admin/data", { headers: { Cookie: cookie } }))

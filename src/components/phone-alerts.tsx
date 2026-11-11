@@ -21,6 +21,14 @@ function deviceLabel() {
   const browser = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "browser";
   return `${kind} · ${browser}`;
 }
+// Whether a browser subscription was made with the server's current public key.
+function sameKey(subscription: PushSubscription, publicKey: string) {
+  const key = subscription.options?.applicationServerKey;
+  if (!key) return true; // Some browsers do not report it; let the server decide.
+  const current = base64UrlToBytes(publicKey);
+  const bytes = new Uint8Array(key);
+  return bytes.length === current.length && bytes.every((b, i) => b === current[i]);
+}
 async function registration() {
   return navigator.serviceWorker.register("/admin-sw.js", { scope: "/admin" });
 }
@@ -34,6 +42,24 @@ export function PhoneAlerts({ publicKey, devices, compact = false }: { publicKey
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [deviceCount, setDeviceCount] = useState(devices);
+
+  // Saves this device on the server. Returns null when saved, otherwise a short reason code.
+  const save = useCallback(async (subscription: PushSubscription) => {
+    try {
+      const r = await fetch("/api/admin/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...subscription.toJSON(), label: deviceLabel() }),
+      });
+      const result = await r.json().catch(() => ({}));
+      if (!r.ok) return String(result.error || `HTTP ${r.status}`);
+      if (typeof result.devices === "number") setDeviceCount(result.devices);
+      return null;
+    } catch {
+      return "NETWORK";
+    }
+  }, []);
 
   const check = useCallback(async () => {
     const supported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
@@ -43,8 +69,20 @@ export function PhoneAlerts({ publicKey, devices, compact = false }: { publicKey
     if (!publicKey) return setState("not-configured");
     if (Notification.permission === "denied") return setState("blocked");
     const reg = await registration();
-    setState((await reg.pushManager.getSubscription()) ? "on" : "off");
-  }, [publicKey]);
+    const subscription = await reg.pushManager.getSubscription();
+    if (!subscription) return setState("off");
+    // Made with keys that have since been replaced: the push service would refuse it.
+    if (!sameKey(subscription, publicKey)) {
+      await subscription.unsubscribe().catch(() => undefined);
+      return setState("off");
+    }
+    // The browser has notifications on; make sure the server also knows this device.
+    const problem = await save(subscription);
+    if (problem) {
+      setState("off");
+      setError(`This device is not saved on the server yet (${problem}). Tap Turn on again.`);
+    } else setState("on");
+  }, [publicKey, save]);
   useEffect(() => {
     check().catch(() => setState("unsupported"));
   }, [check]);
@@ -62,19 +100,24 @@ export function PhoneAlerts({ publicKey, devices, compact = false }: { publicKey
       }
       const reg = await registration();
       await navigator.serviceWorker.ready;
-      const subscription =
-        (await reg.pushManager.getSubscription()) ||
-        (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64UrlToBytes(publicKey) }));
-      const r = await fetch("/api/admin/push", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...subscription.toJSON(), label: deviceLabel() }),
-      });
-      if (!r.ok) throw new Error("save");
+      let subscription = await reg.pushManager.getSubscription();
+      if (subscription && !sameKey(subscription, publicKey)) {
+        await subscription.unsubscribe().catch(() => undefined);
+        subscription = null;
+      }
+      subscription ??= await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64UrlToBytes(publicKey) });
+      const problem = await save(subscription);
+      if (problem) {
+        setState("off");
+        setError(`Could not save this device on the server (${problem}). Please try again.`);
+        return;
+      }
       setState("on");
       setMessage("Notifications are on for this device. Send a test to check they arrive.");
-    } catch {
-      setError("Could not turn on notifications on this device. Check that notifications are allowed for this site, then try again.");
+    } catch (e) {
+      setError(
+        `Could not turn on notifications on this device (${e instanceof Error ? e.name : "error"}). Check that notifications are allowed for this site, then try again.`,
+      );
     } finally {
       setBusy(false);
     }
@@ -86,17 +129,37 @@ export function PhoneAlerts({ publicKey, devices, compact = false }: { publicKey
     try {
       const subscription = await (await registration()).pushManager.getSubscription();
       if (!subscription) return setState("off");
-      const r = await fetch("/api/admin/push/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint: subscription.endpoint }),
-      });
-      const result = await r.json();
-      if (r.ok) setMessage("Test sent. It should appear on this device within a few seconds.");
+      const test = async () => {
+        const r = await fetch("/api/admin/push/test", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: subscription.endpoint }),
+        });
+        return { ok: r.ok, status: r.status, result: await r.json().catch(() => ({})) };
+      };
+      let attempt = await test();
+      // The server did not know this device: save it again, then retry once.
+      if (!attempt.ok && attempt.result.reason === "NOT_REGISTERED") {
+        const problem = await save(subscription);
+        if (problem) {
+          setState("off");
+          setError(`Could not save this device on the server (${problem}). Tap Turn on again.`);
+          return;
+        }
+        attempt = await test();
+      }
+      const { result } = attempt;
+      if (attempt.ok) setMessage("Test sent. It should appear on this device within a few seconds.");
       else if (result.removed) {
+        await subscription.unsubscribe().catch(() => undefined);
         setState("off");
         setError("This device's notification permission has expired. Turn notifications on again.");
-      } else setError("The test could not be delivered. Please try again shortly.");
+      } else
+        setError(
+          `The test could not be delivered (${result.reason || result.error || `HTTP ${attempt.status}`}${
+            result.statuses?.length ? `, push service ${result.statuses.join(", ")}` : ""
+          }). Please try again shortly.`,
+        );
     } catch {
       setError("Could not reach the server. Please retry.");
     } finally {
@@ -110,11 +173,13 @@ export function PhoneAlerts({ publicKey, devices, compact = false }: { publicKey
     try {
       const subscription = await (await registration()).pushManager.getSubscription();
       if (subscription) {
-        await fetch("/api/admin/push", {
+        const r = await fetch("/api/admin/push", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ endpoint: subscription.endpoint }),
         });
+        const result = await r.json().catch(() => ({}));
+        if (typeof result.devices === "number") setDeviceCount(result.devices);
         await subscription.unsubscribe();
       }
       setState("off");
@@ -154,7 +219,7 @@ export function PhoneAlerts({ publicKey, devices, compact = false }: { publicKey
       <p>
         Each phone or computer that turns this on is told about new bookings, online payments and confirmed orders. Tapping
         the notification opens the order.{" "}
-        {devices ? `${devices} device${devices === 1 ? "" : "s"} turned on.` : "No devices turned on yet."}
+        {deviceCount ? `${deviceCount} device${deviceCount === 1 ? "" : "s"} turned on.` : "No devices turned on yet."}
       </p>
       {state === "checking" && <p className="muted">Checking this device…</p>}
       {state === "not-configured" && (
