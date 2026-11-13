@@ -148,9 +148,25 @@ export const translations: Record<string, {ta: string; hi: string}> = {
     "ta": "பணம் செலுத்தும் முறையைத் தேர்ந்தெடுக்கவும்",
     "hi": "भुगतान का तरीका चुनें"
   },
-  "Pay at Delivery": {
-    "ta": "பெறும்போது பணம் செலுத்தலாம்",
-    "hi": "डिलीवरी पर भुगतान"
+  "Check your booking status": {
+    "ta": "உங்கள் முன்பதிவு நிலையைப் பார்க்கவும்",
+    "hi": "अपनी बुकिंग की स्थिति देखें"
+  },
+  "Enter the mobile number you used for this booking to see its latest status.": {
+    "ta": "இந்த முன்பதிவுக்குப் பயன்படுத்திய மொபைல் எண்ணை உள்ளிட்டு சமீபத்திய நிலையைப் பார்க்கவும்.",
+    "hi": "नवीनतम स्थिति देखने के लिए इस बुकिंग में दिया गया मोबाइल नंबर दर्ज करें।"
+  },
+  "Show booking status": {
+    "ta": "முன்பதிவு நிலையைக் காட்டு",
+    "hi": "बुकिंग की स्थिति दिखाएँ"
+  },
+  "No booking matches this booking ID and phone number. Please check the number or contact us.": {
+    "ta": "இந்த முன்பதிவு எண் மற்றும் மொபைல் எண்ணுக்குப் பொருந்தும் முன்பதிவு இல்லை. எண்ணைச் சரிபார்க்கவும் அல்லது எங்களைத் தொடர்புகொள்ளவும்.",
+    "hi": "इस बुकिंग आईडी और मोबाइल नंबर से कोई बुकिंग नहीं मिली। कृपया नंबर जाँचें या हमसे संपर्क करें।"
+  },
+  "Cash on Delivery": {
+    "ta": "கேஷ் ஆன் டெலிவரி",
+    "hi": "कैश ऑन डिलीवरी"
   },
   "Online Payment (Razorpay)": {
     "ta": "இணையவழிப் பணம் (Razorpay)",
@@ -816,7 +832,7 @@ export const translations: Record<string, {ta: string; hi: string}> = {
     "ta": "விலைகளும் கட்டணமும்",
     "hi": "कीमतें और भुगतान"
   },
-  "The total shown at review is the amount for the selected products. No additional delivery charges are collected by this checkout. Any separate delivery service must be explicitly agreed before fulfilment. Online orders are confirmed only after payment capture; Pay at Delivery bookings initially await our team’s confirmation.": {
+  "The total shown at review is the amount for the selected products. No additional delivery charges are collected by this checkout. Any separate delivery service must be explicitly agreed before fulfilment. Online orders are confirmed only after payment capture; Cash on Delivery bookings initially await our team’s confirmation.": {
     "ta": "சரிபார்ப்பில் காட்டப்படும் மொத்தம் தேர்ந்தெடுத்த பொருட்களுக்கானது. இங்கு கூடுதல் விநியோகக் கட்டணம் வசூலிக்கப்படாது. தனி விநியோகச் சேவையை முன்பே ஒப்புக்கொள்ள வேண்டும். இணையக் கட்டணம் பெறப்பட்ட பிறகே உறுதி செய்யப்படும்; பெறும்போது செலுத்தும் முன்பதிவுக்கு குழுவின் உறுதி தேவை.",
     "hi": "समीक्षा में कुल राशि चुने उत्पादों की है। इस चेकआउट में अतिरिक्त डिलीवरी शुल्क नहीं लिया जाता। अलग डिलीवरी सेवा पहले सहमति से तय होगी। ऑनलाइन ऑर्डर भुगतान प्राप्त होने पर पुष्ट होते हैं; डिलीवरी पर भुगतान वाली बुकिंग टीम की पुष्टि की प्रतीक्षा करती है।"
   },
@@ -1215,6 +1231,10 @@ export const translations: Record<string, {ta: string; hi: string}> = {
   "Yes, when online payments are enabled, Razorpay checkout supports the payment options available for your account, including UPI and cards.": {
     "ta": "ஆம். இணையக் கட்டணம் இயக்கப்பட்டிருந்தால் Razorpay உங்கள் கணக்கில் கிடைக்கும் UPI மற்றும் அட்டை உள்ளிட்ட முறைகளை வழங்கும்.",
     "hi": "हाँ। ऑनलाइन भुगतान चालू होने पर Razorpay आपके खाते में उपलब्ध UPI और कार्ड सहित विकल्प देता है।"
+  },
+  "Is Cash on Delivery available?": {
+    "ta": "கேஷ் ஆன் டெலிவரி கிடைக்குமா?",
+    "hi": "क्या कैश ऑन डिलीवरी उपलब्ध है?"
   },
   "Is Pay at Delivery available?": {
     "ta": "பெறும்போது பணம் செலுத்தலாமா?",

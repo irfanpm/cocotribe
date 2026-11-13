@@ -96,6 +96,7 @@ async function openCheckout(options: {
     modal: { ondismiss: onDone },
   }).open();
 }
+const DRAFT_KEY = "cocotribe-booking-draft";
 export function Booking({ catalog }: { catalog: Catalog }) {
   const { t, lang } = useLanguage();
   const params = useSearchParams();
@@ -124,27 +125,55 @@ export function Booking({ catalog }: { catalog: Catalog }) {
   useEffect(() => {
     if (stage === 1) reviewRef.current?.focus();
   }, [stage]);
+  // The form survives an accidental reload (e.g. a pull-to-refresh while scrolling on a phone):
+  // it is kept in this tab's session storage until the booking is placed.
+  const [restored, setRestored] = useState(false);
   useEffect(() => {
     let raw: string | null = null;
-    try { raw = sessionStorage.getItem("cocotribe-booking-draft"); sessionStorage.removeItem("cocotribe-booking-draft"); } catch { return; }
-    if (!raw) return;
+    try { raw = sessionStorage.getItem(DRAFT_KEY); } catch { /* Storage blocked: start fresh. */ }
     try {
-      const draft = JSON.parse(raw);
-      setName(String(draft.name || ""));
-      setPhone(String(draft.phone || ""));
-      if (!params.get("product") && catalog.products.some((p) => p.id === draft.productId))
-        setProductId(draft.productId);
-      setQuantity(Math.max(1, Math.min(1000, Number(draft.quantity) || 1)));
-      setDate(String(draft.date || ""));
-      setSlotId(String(draft.slotId || ""));
-      if (
-        (draft.method === "DELIVERY" && catalog.settings.deliveryEnabled) ||
-        (draft.method === "RAZORPAY" && catalog.online)
-      )
-        setMethod(draft.method);
+      const draft = raw ? JSON.parse(raw) : null;
+      const linked = params.get("product");
+      // A link to a different product starts a new booking rather than resuming the old one.
+      if (draft && (!linked || linked === draft.productId)) {
+        setName(String(draft.name || ""));
+        setPhone(String(draft.phone || ""));
+        setNotes(String(draft.notes || ""));
+        if (catalog.products.some((p) => p.id === draft.productId)) setProductId(draft.productId);
+        setQuantity(Math.max(1, Math.min(1000, Number(draft.quantity) || 1)));
+        setDate(String(draft.date || ""));
+        if (catalog.slots.some((s) => s.id === draft.slotId)) setSlotId(String(draft.slotId));
+        if (
+          (draft.method === "DELIVERY" && catalog.settings.deliveryEnabled) ||
+          (draft.method === "RAZORPAY" && catalog.online)
+        )
+          setMethod(draft.method);
+        if (draft.stage === 1) setStage(1);
+      }
     } catch {
       /* Ignore malformed temporary drafts. */
     }
+    setRestored(true);
+  }, []);
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      sessionStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ name, phone, notes, productId, quantity, date, slotId, method, stage }),
+      );
+    } catch {
+      /* Storage blocked: the form still works, it just is not kept across reloads. */
+    }
+  }, [restored, name, phone, notes, productId, quantity, date, slotId, method, stage]);
+  // Stop the browser's pull-to-refresh from reloading the page mid-booking.
+  useEffect(() => {
+    const root = document.documentElement;
+    const previous = root.style.overscrollBehaviorY;
+    root.style.overscrollBehaviorY = "contain";
+    return () => {
+      root.style.overscrollBehaviorY = previous;
+    };
   }, []);
   const maxDate = indiaDate(
     new Date(Date.now() + catalog.settings.maxDays * 86400000),
@@ -183,6 +212,8 @@ export function Booking({ catalog }: { catalog: Catalog }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       const href = `/booking/${result.order.bookingId}#${result.token}`;
+      // The booking exists now; a reload must not offer to place it again.
+      try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* Storage blocked. */ }
       if (!result.gateway || result.order.paymentStatus === "PAID") {
         router.push(href);
         return;
@@ -370,7 +401,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                     />
                     <span>
                       <strong>
-                        {t("Pay at Delivery", "ലഭിക്കുമ്പോൾ പണമടയ്ക്കാം")}
+                        {t("Cash on Delivery", "ക്യാഷ് ഓൺ ഡെലിവറി")}
                       </strong>
                       <small>
                         {t(
@@ -581,32 +612,65 @@ export function Confirmation({
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
     [paying, setPaying] = useState(false);
+  // Without the private link (e.g. from a WhatsApp update), the customer confirms their phone number.
+  const [lookup, setLookup] = useState(false),
+    [lookupPhone, setLookupPhone] = useState("");
   const token = useRef("");
+  const verifiedPhone = useRef("");
   const refresh = useCallback(async (quiet = false) => {
     if (!quiet) {
       setLoading(true);
       setError("");
     }
     try {
-      const r = await fetch(`/api/bookings/${encodeURIComponent(id)}`, {
-        headers: { Authorization: `Bearer ${token.current}` },
-        cache: "no-store",
-      });
+      const r = token.current
+        ? await fetch(`/api/bookings/${encodeURIComponent(id)}`, {
+            headers: { Authorization: `Bearer ${token.current}` },
+            cache: "no-store",
+          })
+        : await fetch(`/api/bookings/${encodeURIComponent(id)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: verifiedPhone.current }),
+            cache: "no-store",
+          });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
       setOrder(data);
+      setLookup(false);
       setError("");
     } catch (e) {
       // A background check failing should not replace a booking that is already on screen.
-      if (!quiet) setError(e instanceof Error ? e.message : "SERVICE_UNAVAILABLE");
+      if (quiet) return;
+      const code = e instanceof Error ? e.message : "SERVICE_UNAVAILABLE";
+      // An incomplete or old private link: offer the phone-number check instead of a dead end.
+      if (code === "NOT_FOUND" && token.current) {
+        token.current = "";
+        setLookup(true);
+        return;
+      }
+      setError(code);
     } finally {
       if (!quiet) setLoading(false);
     }
   }, [id]);
   useEffect(() => {
     token.current = window.location.hash.slice(1);
-    void refresh();
+    if (token.current) void refresh();
+    else {
+      setLookup(true);
+      setLoading(false);
+    }
   }, [refresh]);
+  function findBooking(e: React.FormEvent) {
+    e.preventDefault();
+    if (!validPhone(lookupPhone)) {
+      setError("INVALID_INPUT");
+      return;
+    }
+    verifiedPhone.current = lookupPhone;
+    void refresh();
+  }
   const finished = order?.status === "COMPLETED" || order?.status === "CANCELLED";
   useEffect(() => {
     if (finished) return;
@@ -653,6 +717,32 @@ export function Confirmation({
           {t("Loading your booking…", "ബുക്കിംഗ് ലഭ്യമാക്കുന്നു…")}
         </p>
       )}
+      {lookup && !order && (
+        <form className="panel" onSubmit={findBooking}>
+          <Heading en="Check your booking status" ml="ബുക്കിംഗ് നില അറിയാം" />
+          <p>
+            {t(
+              "Enter the mobile number you used for this booking to see its latest status.",
+              "ഈ ബുക്കിംഗിന് നൽകിയ മൊബൈൽ നമ്പർ നൽകിയാൽ പുതിയ നില കാണാം.",
+            )}
+          </p>
+          <p className="eyebrow">{t("BOOKING ID", "ബുക്കിംഗ് നമ്പർ")}: {id}</p>
+          <label>
+            {t("Mobile number", "മൊബൈൽ നമ്പർ")}
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              required
+              value={lookupPhone}
+              onChange={(e) => setLookupPhone(e.target.value)}
+            />
+          </label>
+          <button className="button" disabled={loading}>
+            {t("Show booking status", "ബുക്കിംഗ് നില കാണിക്കുക")}
+          </button>
+        </form>
+      )}
       {order && (
         <>
           {order.status !== "CANCELLED" && (
@@ -676,19 +766,21 @@ export function Confirmation({
                   : "നിങ്ങളുടെ ബുക്കിംഗ് ലഭിച്ചു."
             }
           />
-          <p>
-            {t(
-              "Keep this private page link for your records. Please don’t share it publicly.",
-              "ഈ സ്വകാര്യ പേജ് ലിങ്ക് സൂക്ഷിക്കുക. പൊതുവായി പങ്കിടരുത്.",
-            )}
-          </p>
+          {token.current && (
+            <p>
+              {t(
+                "Keep this private page link for your records. Please don’t share it publicly.",
+                "ഈ സ്വകാര്യ പേജ് ലിങ്ക് സൂക്ഷിക്കുക. പൊതുവായി പങ്കിടരുത്.",
+              )}
+            </p>
+          )}
           <div className="panel">
             <div className="section-heading">
               <div>
                 <p className="eyebrow">{t("BOOKING ID", "ബുക്കിംഗ് നമ്പർ")}</p>
                 <h2>{order.bookingId}</h2>
               </div>
-              <span className="status">{t(...statuses[order.status])}</span>
+              <span className={`status tone-${order.status}`}>{t(...statuses[order.status])}</span>
             </div>
             <dl className="summary-list">
               {[

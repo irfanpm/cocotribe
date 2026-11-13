@@ -239,6 +239,19 @@ async function main() {
     assert.equal(booking.order.status, "PENDING");
     const duplicate = await (await post("/api/bookings", base)).json();
     assert.equal(duplicate.order.bookingId, booking.order.bookingId);
+    // Status from a WhatsApp link: needs the booking's phone number, in any common format.
+    const statusPath = `/api/bookings/${booking.order.bookingId}`;
+    const byPhone = await post(statusPath, { phone: "+91 99999 99999" });
+    assert.equal(byPhone.status, 200);
+    const seen = await byPhone.json();
+    assert.equal(seen.status, "PENDING");
+    assert.equal(seen.gateway, null, "paying still needs the private link");
+    const wrongPhone = await post(statusPath, { phone: "9888888888" });
+    assert.equal(wrongPhone.status, 404);
+    assert.equal((await wrongPhone.json()).error, "STATUS_NOT_FOUND");
+    assert.equal((await post(statusPath, { phone: "9999999999" }, "", "https://evil.example")).status, 403);
+    for (let i = 0; i < 8; i++) await post(statusPath, { phone: "9888888888" });
+    assert.equal((await post(statusPath, { phone: "9999999999" })).status, 429, "guessing is rate limited per booking");
     assert.equal(await waitForAlerts(1), 1, "one alert for a new booking, none for the retry");
     await new Promise((r) => setTimeout(r, 500));
     assert.equal(alerts.length, 1, "the retried request sends no second alert");

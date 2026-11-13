@@ -162,6 +162,19 @@ async function main() {
     await page.locator(".coco-language select").selectOption("en");
     step("language switch persists");
 
+    // Phone bottom bar steps aside over the services section, which has its own enquiry buttons.
+    await page.goto(origin + "/");
+    const bar = page.locator(".mobile-actions");
+    await bar.waitFor();
+    assert.equal(await bar.evaluate((e) => e.classList.contains("is-hidden")), false);
+    await page.locator(".ref-services").scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.querySelector(".mobile-actions")?.classList.contains("is-hidden"));
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForFunction(() => !document.querySelector(".mobile-actions")?.classList.contains("is-hidden"));
+    await page.goto(origin + "/services");
+    await page.waitForFunction(() => document.querySelector(".mobile-actions")?.classList.contains("is-hidden"));
+    step("phone bottom bar hides over the services section and services page");
+
     // Keyboard: skip link first, language selector reachable.
     await page.goto(origin + "/");
     await page.keyboard.press("Tab");
@@ -205,6 +218,12 @@ async function main() {
     assert.match(review, /₹250/);
     assert.match(review, new RegExp(date));
     if (shots) await page.screenshot({ path: `${shots}/review.png`, fullPage: true });
+    // An accidental reload (pull-to-refresh) keeps the booking at the review step.
+    await page.reload();
+    await page.locator("text=Everything look right?").waitFor();
+    assert.match((await page.locator(".panel").first().textContent()) || "", /E2E Customer/);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).overscrollBehaviorY), "contain");
+    step("booking survives a reload and pull-to-refresh is off while booking");
     // Friendly error if the server fails, and the same request can be retried.
     await page.route("**/api/bookings", (r) => r.fulfill({ status: 503, json: { error: "SERVICE_UNAVAILABLE" } }));
     await page.locator('button:has-text("Place booking")').click();
@@ -215,7 +234,7 @@ async function main() {
     await page.waitForURL(/\/booking\/KT-/);
     const bookingUrl = page.url();
     await page.locator('h1:has-text("Your booking has been received.")').waitFor();
-    assert.match((await page.locator("main").textContent()) || "", /Pay at Delivery/);
+    assert.match((await page.locator("main").textContent()) || "", /Cash on Delivery/);
     assert.equal((await db.product.findUniqueOrThrow({ where: { slug: "pooja-coconut-10" } })).stock, 9, "stock reserved");
     assert.equal(await db.order.count({ where: { name: "E2E Customer" } }), 1, "exactly one booking after retry");
     if (shots) await page.screenshot({ path: `${shots}/receipt.png`, fullPage: true });
@@ -225,10 +244,18 @@ async function main() {
     const stranger = await browser.newContext();
     const strangerPage = await stranger.newPage();
     await strangerPage.goto(bookingUrl.split("#")[0]);
+    await strangerPage.locator('h1:has-text("Check your booking status")').waitFor();
+    assert.equal((await strangerPage.locator("main").textContent())?.includes("E2E Customer"), false);
+    await strangerPage.locator('input[type="tel"]').fill("9888888888");
+    await strangerPage.locator('button:has-text("Show booking status")').click();
     await strangerPage.locator('.notice.error[role="alert"]').waitFor();
     assert.equal((await strangerPage.locator("main").textContent())?.includes("E2E Customer"), false);
+    step("receipt without the private link shows no customer data; a wrong phone shows nothing");
+    await strangerPage.locator('input[type="tel"]').fill("+91 99999 99999");
+    await strangerPage.locator('button:has-text("Show booking status")').click();
+    await strangerPage.locator('h1:has-text("Your booking has been received.")').waitFor();
     await stranger.close();
-    step("receipt without the private link shows no customer data");
+    step("the booking phone number shows the order status");
 
     // Admin sign-in, sidebar, search, transitions, stock, audit.
     const adminContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -267,8 +294,16 @@ async function main() {
     assert.match(sentTo, /wa\.me\/919999999999/, "goes to the customer's number");
     assert.match(sentTo, /Order status: Confirmed/);
     assert.match(sentTo, /KT-/);
+    assert.match(sentTo, new RegExp("Check your order status any time: " + origin.replace(/[.]/g, "\.") + "/booking/KT-"));
+    assert.match(sentTo, new RegExp("Book again: " + origin.replace(/[.]/g, "\.") + "/book\n"));
     await opened.close();
-    await adminPage.locator('td:has-text("CONFIRMED")').first().waitFor();
+    await adminPage.locator("td span.status.tone-CONFIRMED").first().waitFor();
+    // Counts per status, each in its own colour; tapping one filters the list.
+    assert.notEqual(
+      await adminPage.locator(".status-stat.tone-PENDING").evaluate((e) => getComputedStyle(e).borderLeftColor),
+      await adminPage.locator(".status-stat.tone-CONFIRMED").evaluate((e) => getComputedStyle(e).borderLeftColor),
+    );
+    assert.ok(Number(await adminPage.locator(".status-stat.tone-CONFIRMED strong").textContent()) >= 1);
     assert.equal((await db.order.findFirstOrThrow({ where: { name: "E2E Customer" } })).status, "CONFIRMED");
     step("admin login, sidebar, search, order transition; Yes saves and opens WhatsApp");
     assert.equal(await adminPage.locator('link[rel="manifest"]').getAttribute("href"), "/admin.webmanifest");
@@ -291,12 +326,13 @@ async function main() {
     const onPage = () => { extraWindow = true; };
     adminContext.on("page", onPage);
     await adminPage.locator('button:has-text("No, update only")').click();
-    await adminPage.locator('td:has-text("PREPARING")').first().waitFor();
+    await adminPage.locator("td span.status.tone-PREPARING").first().waitFor();
     adminContext.off("page", onPage);
     assert.equal(extraWindow, false, "no WhatsApp window when the admin says no");
     assert.equal(await adminPage.locator('a:has-text("Send WhatsApp update")').count(), 0);
     assert.equal((await db.order.findFirstOrThrow({ where: { name: "E2E Customer" } })).status, "PREPARING");
     step("No saves the status without any message");
+    if (shots) await adminPage.screenshot({ path: `${shots}/admin-orders.png`, fullPage: true });
 
     // Edit a price through the product form; stock must not move; customer page updates on focus.
     await adminPage.locator('nav[aria-label="Admin sections"] button:has-text("Products")').click();

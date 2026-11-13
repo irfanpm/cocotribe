@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CatalogSync } from "./catalog-sync";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -33,6 +33,30 @@ export function Shell({
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const admin = pathname.startsWith("/admin");
+  // The phone's bottom Book Now / WhatsApp bar steps aside while a section with its own
+  // enquiry buttons (services) is on screen, so there is only one set of buttons to choose from.
+  const [barHidden, setBarHidden] = useState(false);
+  useEffect(() => {
+    if (admin) return;
+    const targets = document.querySelectorAll("[data-hide-mobile-actions]");
+    if (!targets.length || !("IntersectionObserver" in window)) return;
+    const visible = new Set<Element>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) visible.add(e.target);
+          else visible.delete(e.target);
+        }
+        setBarHidden(visible.size > 0);
+      },
+      { rootMargin: "0px 0px -20% 0px" },
+    );
+    targets.forEach((t) => observer.observe(t));
+    return () => {
+      observer.disconnect();
+      setBarHidden(false);
+    };
+  }, [pathname, admin]);
   if (admin) return <div className="admin-site"><a href="#main" className="skip">Skip to content</a><main id="main">{children}</main></div>;
   return (
     <div className="reference-site">
@@ -181,7 +205,7 @@ export function Shell({
         </div>
       </footer>
       {!admin && (
-        <div className="mobile-actions">
+        <div className={barHidden ? "mobile-actions is-hidden" : "mobile-actions"} aria-hidden={barHidden || undefined} inert={barHidden || undefined}>
           <WhatsApp number={settings.whatsapp} className="button outline">
             WhatsApp
           </WhatsApp>

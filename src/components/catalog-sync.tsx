@@ -10,7 +10,9 @@ export function CatalogSync() {
  const [pending, startTransition] = useTransition();
  const revisions = useRef(new Map<string, string>());
  useEffect(() => {
-  if (pathname.startsWith('/admin')) return;
+  // Not while booking: a background refresh mid-form looked like the page reloading. The server
+  // still checks price and stock when the booking is placed, and the form refreshes on a change.
+  if (pathname.startsWith('/admin') || pathname.startsWith('/book')) return;
   let lastRefresh = 0;
   const refresh = () => {
    if (document.visibilityState !== 'visible' || Date.now() - lastRefresh < 3000) return;

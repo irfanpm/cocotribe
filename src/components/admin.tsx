@@ -168,7 +168,7 @@ const labels: Record<string, string> = {
   aboutMl: "About · Malayalam",
   leadHours: "Minimum notice in hours",
   maxDays: "Maximum days in advance",
-  deliveryEnabled: "Enable Pay at Delivery",
+  deliveryEnabled: "Enable Cash on Delivery",
   onlineEnabled: "Enable Online Payment (Razorpay keys required)",
 };
 const emptyProduct = {
@@ -201,6 +201,21 @@ function editValues(obj: object) {
     Object.entries(obj).filter(([key]) => key in labels),
   );
 }
+const orderStatuses = ["PENDING", "CONFIRMED", "PREPARING", "READY", "COMPLETED", "CANCELLED"] as const;
+const statusLabels: Record<string, string> = {
+  PENDING: "New / pending",
+  CONFIRMED: "Confirmed",
+  PREPARING: "Preparing",
+  READY: "Ready",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+};
+const paymentLabels: Record<string, string> = {
+  PENDING: "Payment pending",
+  PAID: "Paid",
+  REFUND_REQUIRED: "Refund to arrange",
+  REFUNDED: "Refunded",
+};
 const previewOrders: AdminOrder[] = ["CONFIRMED", "READY", "PENDING"].map((status, i) => ({
   id: `preview-${i}`, bookingId: `DEMO-100${i + 1}`, name: `Sample Customer ${i + 1}`, phone: "0000000000",
   productNameEn: "Fresh Coconut", productNameMl: "പുതിയ തേങ്ങ", language: "en", quantity: (i + 1) * 5, date: new Date().toISOString().slice(0,10),
@@ -307,7 +322,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
     if (preview) {
       setRefreshing(false);
       const orders = previewOrders.filter(o => (!search || `${o.name} ${o.bookingId} ${o.phone}`.toLowerCase().includes(search.toLowerCase())) && (!date || o.date === date) && (!payment || o.paymentStatus === payment) && (!status || o.status === status));
-      setData({orders, count: orders.length, page: 0, products: sampleProducts, slots: sampleSlots, faqs: sampleFaqs, settings: sampleSettings, messages: [{id:"sample-message",name:"Sample Customer",phone:"0000000000",message:"Sample enquiry: Do you supply coconuts for family events?",createdAt:new Date().toISOString()}],stats:{todays:3,upcoming:3,total:3,pending:2,paid:1,delivery:2},audit:[]});
+      setData({orders, count: orders.length, page: 0, products: sampleProducts, slots: sampleSlots, faqs: sampleFaqs, settings: sampleSettings, messages: [{id:"sample-message",name:"Sample Customer",phone:"0000000000",message:"Sample enquiry: Do you supply coconuts for family events?",createdAt:new Date().toISOString()}],stats:{todays:3,upcoming:3,total:3,pending:2,paid:1,delivery:2,status_PENDING:1,status_CONFIRMED:1,status_PREPARING:0,status_READY:1,status_COMPLETED:0,status_CANCELLED:0,refunds:0},audit:[]});
       return;
     }
     try {
@@ -472,21 +487,67 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
           {tab === "Orders" && !preview && data.push && (
             <PhoneAlerts compact publicKey={data.push.publicKey} devices={data.push.devices} />
           )}
-          {tab === "Orders" && <div className="stats">
-            {[
-              ["todays", "Today’s bookings"],
-              ["upcoming", "Upcoming bookings"],
-              ["total", "Total orders"],
-              ["pending", "Pending payments"],
-              ["paid", "Paid orders"],
-              ["delivery", "Pay at Delivery"],
-            ].map(([key, label]) => (
-              <div key={key}>
-                <span>{label}</span>
-                <strong>{data.stats[key]}</strong>
+          {tab === "Orders" && (
+            <>
+              <div className="stats">
+                {[
+                  ["todays", "Today’s bookings"],
+                  ["upcoming", "Upcoming bookings"],
+                  ["total", "Total orders"],
+                ].map(([key, label]) => (
+                  <div key={key}>
+                    <span>{label}</span>
+                    <strong>{data.stats[key] ?? 0}</strong>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>}
+              {/* Each status has its own colour, used again on the order rows. Tap to filter. */}
+              <div className="status-stats" aria-label="Orders by status">
+                {orderStatuses.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`status-stat tone-${s}`}
+                    aria-pressed={status === s}
+                    onClick={() => {
+                      setStatus(status === s ? "" : s);
+                      setPage(0);
+                    }}
+                  >
+                    <span>{statusLabels[s]}</span>
+                    <strong>{data.stats[`status_${s}`] ?? 0}</strong>
+                  </button>
+                ))}
+              </div>
+              <div className="status-stats payments" aria-label="Orders by payment">
+                {(
+                  [
+                    ["PENDING", "pending", "Payment pending"],
+                    ["PAID", "paid", "Paid"],
+                    ["REFUND_REQUIRED", "refunds", "Refund to arrange"],
+                  ] as const
+                ).map(([value, key, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`status-stat tone-pay-${value}`}
+                    aria-pressed={payment === value}
+                    onClick={() => {
+                      setPayment(payment === value ? "" : value);
+                      setPage(0);
+                    }}
+                  >
+                    <span>{label}</span>
+                    <strong>{data.stats[key] ?? 0}</strong>
+                  </button>
+                ))}
+                <div className="status-stat tone-cod">
+                  <span>Cash on Delivery orders</span>
+                  <strong>{data.stats.delivery ?? 0}</strong>
+                </div>
+              </div>
+            </>
+          )}
           {tab === "Orders" && (
             <>
               <div className="admin-filters">
@@ -526,7 +587,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                     <option value="">All payments</option>
                     {["PENDING", "PAID", "REFUND_REQUIRED", "REFUNDED"].map(
                       (s) => (
-                        <option key={s}>{s}</option>
+                        <option key={s} value={s}>{paymentLabels[s]}</option>
                       ),
                     )}
                   </select>
@@ -541,15 +602,8 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                     }}
                   >
                     <option value="">All statuses</option>
-                    {[
-                      "PENDING",
-                      "CONFIRMED",
-                      "PREPARING",
-                      "READY",
-                      "COMPLETED",
-                      "CANCELLED",
-                    ].map((s) => (
-                      <option key={s}>{s}</option>
+                    {orderStatuses.map((s) => (
+                      <option key={s} value={s}>{statusLabels[s]}</option>
                     ))}
                   </select>
                 </label>
@@ -594,13 +648,15 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                         <td>{money(o.total)}</td>
                         <td>
                           {o.method === "DELIVERY"
-                            ? "Pay at Delivery"
+                            ? "Cash on Delivery"
                             : "Razorpay"}
                         </td>
                         <td>
-                          <span className="status">{o.paymentStatus}</span>
+                          <span className={`status tone-pay-${o.paymentStatus}`}>{paymentLabels[o.paymentStatus] || o.paymentStatus}</span>
                         </td>
-                        <td>{o.status}</td>
+                        <td>
+                          <span className={`status tone-${o.status}`}>{statusLabels[o.status] || o.status}</span>
+                        </td>
                         <td>
                           <button
                             className="text-link"

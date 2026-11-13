@@ -161,7 +161,7 @@ RUN_DATABASE_TESTS=1 npx tsx tests/e2e-browser.ts
 
 The owner's WhatsApp receives an alert when:
 
-- a Pay at Delivery booking is placed;
+- a Cash on Delivery booking is placed;
 - an online booking is paid; or
 - staff change an order to **Confirmed**.
 
@@ -181,7 +181,7 @@ Alerts use Meta's official **WhatsApp Cloud API**. Messages a business starts mu
    COCOTRIBE alert: {{1}}. Booking {{2}}. Customer {{3}}. Order {{4}}. Visit {{5}}. Payment {{6}}. Total {{7}}.
    ```
 
-   Example values for Meta's review: `New booking`, `KT-1A2B3C4D5E`, `Asha (+919000090000)`, `2 x Pooja Coconut · Mini Pack (2 pcs)`, `2026-11-20, 06:00 – 09:00 IST`, `Pay at Delivery, pending`, `Rs 100`.
+   Example values for Meta's review: `New booking`, `KT-1A2B3C4D5E`, `Asha (+919000090000)`, `2 x Pooja Coconut · Mini Pack (2 pcs)`, `2026-11-20, 06:00 – 09:00 IST`, `Cash on Delivery, pending`, `Rs 100`.
 4. Create a **system user** in Business Settings and generate a **permanent** access token with WhatsApp messaging permission. Temporary tokens expire quickly.
 5. Set these in Vercel (Production), then redeploy:
 
@@ -202,7 +202,7 @@ Customer names, phone numbers and orders pass through Meta to deliver these aler
 
 The admin panel can be installed as an app. Any phone or computer that turns notifications on is notified when:
 
-- a Pay at Delivery booking is placed;
+- a Cash on Delivery booking is placed;
 - an online booking is paid; or
 - staff confirm an order.
 

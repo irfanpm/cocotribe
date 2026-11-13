@@ -115,6 +115,12 @@ test("Customer update message uses their language and links to their number", ()
   const link = new URL(orderUpdateLink({ ...order, name: "A & B?" }));
   assert.equal(link.pathname, "/919000090000");
   assert.match(link.searchParams.get("text") || "", /A & B\?/, "special characters stay inside the message");
+  // The customer gets a status link (which asks for their phone number) and a link to book again.
+  const withLinks = orderUpdateMessage(order, "https://shop.example/");
+  assert.match(withLinks, /Check your order status any time: https:\/\/shop\.example\/booking\/KT-TEST1\n/);
+  assert.match(withLinks, /Book again: https:\/\/shop\.example\/book\n/);
+  assert.match(orderUpdateMessage({ ...order, language: "ml" }, "https://shop.example"), /വീണ്ടും ബുക്ക് ചെയ്യാം: https:\/\/shop\.example\/book/);
+  assert.doesNotMatch(withLinks, /#|token/i, "no private link token in a message");
 });
 test("Owner WhatsApp alerts stay off until fully configured, then send an approved template", async () => {
   const alert = {

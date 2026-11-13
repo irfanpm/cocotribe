@@ -60,7 +60,7 @@ export function alertValues(a: BookingAlert) {
     `${a.name} (+${a.phone})`,
     `${a.quantity} x ${a.productNameEn}`,
     `${a.date}, ${a.slotLabel} IST`,
-    `${a.method === "RAZORPAY" ? "Online" : "Pay at Delivery"}, ${a.paymentStatus.toLowerCase().replace("_", " ")}`,
+    `${a.method === "RAZORPAY" ? "Online" : "Cash on Delivery"}, ${a.paymentStatus.toLowerCase().replace("_", " ")}`,
     rupees(a.total),
   ].map(templateValue);
 }

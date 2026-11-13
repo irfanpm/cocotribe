@@ -144,7 +144,7 @@ export function ProductDetail({
 export function Services({ catalog }: { catalog: Catalog }) {
   const { t } = useLanguage();
   return (
-    <section className="wrap page-space">
+    <section className="wrap page-space" data-hide-mobile-actions>
       <Heading
         en="Our Services"
         ml="ഞങ്ങളുടെ സേവനങ്ങൾ"
@@ -468,7 +468,7 @@ export function Legal({ kind }: { kind: "terms" | "privacy" }) {
         [
           "Prices and payment",
           "വിലയും പേയ്‌മെന്റും",
-          "The total shown at review is the amount for the selected products. No additional delivery charges are collected by this checkout. Any separate delivery service must be explicitly agreed before fulfilment. Online orders are confirmed only after payment capture; Pay at Delivery bookings initially await our team’s confirmation.",
+          "The total shown at review is the amount for the selected products. No additional delivery charges are collected by this checkout. Any separate delivery service must be explicitly agreed before fulfilment. Online orders are confirmed only after payment capture; Cash on Delivery bookings initially await our team’s confirmation.",
           "പരിശോധനയിൽ കാണുന്ന തുകയാണ് തിരഞ്ഞെടുത്ത ഉൽപ്പന്നങ്ങളുടെ വില. ഈ ചെക്കൗട്ടിൽ അധിക ഡെലിവറി നിരക്ക് ഈടാക്കുന്നില്ല. പ്രത്യേകം ഡെലിവറി സേവനം വേണമെങ്കിൽ മുൻകൂട്ടി ഉറപ്പിക്കണം. ഓൺലൈൻ പേയ്‌മെന്റ് പൂർത്തിയായശേഷം ഓർഡർ സ്ഥിരീകരിക്കും; ലഭിക്കുമ്പോൾ പണമടയ്ക്കുന്ന ബുക്കിംഗ് ടീം സ്ഥിരീകരിക്കണം.",
         ],
         [

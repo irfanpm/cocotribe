@@ -656,3 +656,35 @@ html[lang="ta"] .reference-site .ref-header .ref-gold-button {
     flex-wrap: wrap;
   }
 }
+
+/* Admin: one colour per order status, shared by the count cards and the order rows. */
+.tone-PENDING{--tone:#b42318;--tone-bg:#fdecea}
+.tone-CONFIRMED,.tone-pay-PAID{--tone:#16794a;--tone-bg:#e5f4ea}
+.tone-PREPARING{--tone:#9a5800;--tone-bg:#fff2d9}
+.tone-READY{--tone:#1d5ea8;--tone-bg:#e6effb}
+.tone-COMPLETED{--tone:#0c6a64;--tone-bg:#ddf2ef}
+.tone-CANCELLED,.tone-pay-REFUNDED{--tone:#5b6166;--tone-bg:#eceff1}
+.tone-pay-PENDING{--tone:#b45309;--tone-bg:#fff0de}
+.tone-pay-REFUND_REQUIRED{--tone:#7a2b8c;--tone-bg:#f4e7f8}
+.tone-cod{--tone:#6b4e16;--tone-bg:#f6efe1}
+.status[class*="tone-"]{background:var(--tone-bg);color:var(--tone);font-weight:700;border:1px solid color-mix(in srgb,var(--tone) 25%,transparent)}
+.status[class*="tone-"]::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--tone);margin-right:6px;vertical-align:1px}
+.status-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:-12px 0 16px}
+.status-stats.payments{grid-template-columns:repeat(4,minmax(0,1fr));margin:0 0 28px}
+.status-stat{appearance:none;font:inherit;text-align:left;cursor:pointer;background:var(--tone-bg);border:1px solid color-mix(in srgb,var(--tone) 22%,transparent);border-left:5px solid var(--tone);border-radius:10px;padding:14px 16px;color:var(--tone);transition:transform .12s ease,box-shadow .12s ease}
+div.status-stat{cursor:default}
+button.status-stat:hover{transform:translateY(-1px);box-shadow:0 4px 14px #0000000f}
+button.status-stat:focus-visible{outline:3px solid var(--tone);outline-offset:2px}
+.status-stat[aria-pressed="true"]{background:var(--tone);color:#fff;box-shadow:0 4px 14px #00000024}
+.status-stat span{display:block;font-size:.82rem;font-weight:700;letter-spacing:.01em}
+.status-stat strong{display:block;font-size:1.9rem;line-height:1.1;margin-top:6px;font-weight:700}
+@media (max-width:1100px){.status-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.status-stats.payments{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.status-stats,.status-stats.payments{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.status-stat{padding:12px}.status-stat strong{font-size:1.5rem}}
+
+/* Phone bottom bar: slides away while a section with its own enquiry buttons is on screen. */
+.reference-site .mobile-actions{transition:transform .25s ease,opacity .25s ease,visibility .25s}
+.reference-site .mobile-actions.is-hidden{transform:translateY(110%);opacity:0;visibility:hidden;pointer-events:none}
+
+/* Counts and booking IDs: lining figures in the sans face, so 0/1 never read as O/I. */
+.admin-workspace .stats strong,.stats strong{font-family:inherit;font-weight:700;font-size:2.2rem;line-height:1.1;font-variant-numeric:lining-nums tabular-nums;color:var(--ink,#173d2b)}
+.confirmation .section-heading h2{font-variant-numeric:lining-nums tabular-nums}

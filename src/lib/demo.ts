@@ -70,8 +70,8 @@ const faqRows = [
     "ഓൺലൈൻ പേയ്‌മെന്റ് ലഭ്യമാകുമ്പോൾ Razorpay വഴി UPI, കാർഡ് തുടങ്ങിയ ലഭ്യമായ മാർഗങ്ങളിൽ പണമടയ്ക്കാം.",
   ],
   [
-    "Is Pay at Delivery available?",
-    "ലഭിക്കുമ്പോൾ പണമടയ്ക്കാമോ?",
+    "Is Cash on Delivery available?",
+    "ക്യാഷ് ഓൺ ഡെലിവറി ലഭ്യമാണോ?",
     "Yes, when available at checkout. Payment is collected when you receive your order, at the collection or delivery arrangement confirmed with us.",
     "ചെക്കൗട്ടിൽ ഈ മാർഗം ലഭ്യമാണെങ്കിൽ തിരഞ്ഞെടുക്കാം. മുൻകൂട്ടി ഉറപ്പിച്ച ക്രമീകരണപ്രകാരം ഓർഡർ ലഭിക്കുമ്പോൾ പണമടയ്ക്കാം.",
   ],

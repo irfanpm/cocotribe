@@ -44,7 +44,7 @@ Alternatively use an existing PostgreSQL 17+ installation or managed PostgreSQL.
    npm run db:seed
    ```
 4. Set `DEMO_MODE=false` and restart Next.js. This enables real durable bookings and contact enquiries. Do this only in your intended test or live database. Missing database configuration fails visibly; the app never silently converts live orders into sample data.
-5. Configure the admin account below, verify all settings, and make a Pay at Delivery test booking.
+5. Configure the admin account below, verify all settings, and make a Cash on Delivery test booking.
 
 The seed is idempotent and does not overwrite existing product prices or content.
 
@@ -66,13 +66,13 @@ Remove `ADMIN_PASSWORD` after account creation. Sign in at `/admin/login`. Runni
 
 Admin features:
 
-- Today/upcoming/total/pending/paid/Pay at Delivery counts.
+- Today/upcoming/total/pending/paid/Cash on Delivery counts.
 - Booking search by name, phone or ID; date, payment and order-status filters; pagination; full order notes and contact links.
 - Order transitions: Pending → Confirmed → Preparing → Ready → Completed. Pending through Ready can be cancelled. Completed/Cancelled cannot reopen.
 - Products, bilingual descriptions, prices in **paise**, active status and unreserved stock.
 - Time slots, start times in IST, active status and per-day booking capacity.
 - Bilingual FAQs and display order.
-- Bilingual hero/about/contact/hours content, phone, WhatsApp, email, advance notice, booking horizon and Pay at Delivery availability.
+- Bilingual hero/about/contact/hours content, phone, WhatsApp, email, advance notice, booking horizon and Cash on Delivery availability.
 - Contact-message inbox (latest 100 submissions) and audit records for admin edits.
 
 To add product photographs, place optimised JPG/WebP files in `public/images`, deploy them, then set their `/images/filename.jpg` path in the product editor. Media upload is intentionally not exposed. Image paths are restricted to the local image directory.
@@ -96,7 +96,7 @@ node --env-file=.env --import tsx scripts/reconcile.ts
 
 The job checks Razorpay before releasing stock. Authorised payments remain reserved while awaiting capture. Gateway errors fail closed and need monitoring/retry. The job also removes expired rate-limit buckets. Run only one scheduled instance at a time. On serverless hosting, use a separate managed scheduled job that can run this command with the same database and gateway secrets.
 
-Late captured payments for cancelled bookings become `REFUND_REQUIRED` and do not trigger fulfilment. Process the refund in the Razorpay dashboard, then record `REFUNDED` in admin. **Automatic refund initiation is not implemented.** Reconcile refund amounts manually before updating the record. Pay at Delivery can be marked paid by an admin after collection; online payment status cannot be manually changed to paid.
+Late captured payments for cancelled bookings become `REFUND_REQUIRED` and do not trigger fulfilment. Process the refund in the Razorpay dashboard, then record `REFUNDED` in admin. **Automatic refund initiation is not implemented.** Reconcile refund amounts manually before updating the record. Cash on Delivery can be marked paid by an admin after collection; online payment status cannot be manually changed to paid.
 
 Official references: [Razorpay Node integration](https://razorpay.com/docs/payments/server-integration/nodejs/integration-steps/) and [webhook validation](https://razorpay.com/docs/webhooks/validate-test/).
 
@@ -193,7 +193,7 @@ This project uses Supabase PostgreSQL through server-side Prisma 6. Existing boo
 
    The last command also requires your chosen `ADMIN_EMAIL` and `ADMIN_PASSWORD` (minimum 14 characters). Remove the password environment variable after provisioning.
 5. Set `APP_URL` to your exact HTTPS website origin and configure a strong `SESSION_SECRET`. After migrations, seeding and admin setup succeed, set `DEMO_MODE=false` and redeploy Vercel. Keep Razorpay variables configured separately for online payments.
-6. Test admin login and a Pay at Delivery booking. Verify that the order appears in Supabase and in the dashboard.
+6. Test admin login and a Cash on Delivery booking. Verify that the order appears in Supabase and in the dashboard.
 
 Changing connection strings does not move existing data. If an old database contains real records, migrate them separately before switching production. Never run `prisma migrate reset` on production. No Supabase project credentials are committed, and no live migration is performed by this source update.
 

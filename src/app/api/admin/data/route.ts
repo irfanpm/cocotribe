@@ -69,13 +69,20 @@ export async function GET(request: Request) {
       db.faq.findMany({ orderBy: { position: "asc" } }),
       db.settings.findUniqueOrThrow({ where: { id: "main" } }),
       db.contactMessage.findMany({ take: 100, orderBy: { createdAt: "desc" } }),
-      db.$queryRaw<Array<{total:number;todays:number;upcoming:number;pending:number;paid:number;delivery:number}>>`
+      db.$queryRaw<Array<Record<string, number>>>`
         SELECT COUNT(*)::int AS total,
           COUNT(*) FILTER (WHERE date = ${today} AND status <> 'CANCELLED')::int AS todays,
           COUNT(*) FILTER (WHERE date > ${today} AND status NOT IN ('CANCELLED', 'COMPLETED'))::int AS upcoming,
           COUNT(*) FILTER (WHERE "paymentStatus" = 'PENDING' AND status <> 'CANCELLED')::int AS pending,
           COUNT(*) FILTER (WHERE "paymentStatus" = 'PAID')::int AS paid,
-          COUNT(*) FILTER (WHERE method = 'DELIVERY')::int AS delivery
+          COUNT(*) FILTER (WHERE method = 'DELIVERY')::int AS delivery,
+          COUNT(*) FILTER (WHERE status = 'PENDING')::int AS "status_PENDING",
+          COUNT(*) FILTER (WHERE status = 'CONFIRMED')::int AS "status_CONFIRMED",
+          COUNT(*) FILTER (WHERE status = 'PREPARING')::int AS "status_PREPARING",
+          COUNT(*) FILTER (WHERE status = 'READY')::int AS "status_READY",
+          COUNT(*) FILTER (WHERE status = 'COMPLETED')::int AS "status_COMPLETED",
+          COUNT(*) FILTER (WHERE status = 'CANCELLED')::int AS "status_CANCELLED",
+          COUNT(*) FILTER (WHERE "paymentStatus" = 'REFUND_REQUIRED')::int AS refunds
         FROM "Order"`,
       db.auditLog.findMany({ take: 100, orderBy: { createdAt: "desc" } }),
       db.admin.findMany({ select: { id: true, email: true } }),

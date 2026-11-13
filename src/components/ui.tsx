@@ -178,6 +178,10 @@ export const errorMessages: Record<string, [string, string]> = {
     "Booking not found. Please use your private confirmation link.",
     "ബുക്കിംഗ് കണ്ടെത്തിയില്ല. നിങ്ങളുടെ സ്വകാര്യ സ്ഥിരീകരണ ലിങ്ക് ഉപയോഗിക്കുക.",
   ],
+  STATUS_NOT_FOUND: [
+    "No booking matches this booking ID and phone number. Please check the number or contact us.",
+    "ഈ ബുക്കിംഗ് നമ്പറും ഫോൺ നമ്പറും ചേരുന്ന ബുക്കിംഗ് ഇല്ല. നമ്പർ പരിശോധിക്കുക അല്ലെങ്കിൽ ഞങ്ങളെ ബന്ധപ്പെടുക.",
+  ],
   PAYMENT_INVALID: [
     "Payment could not be verified yet. Check your booking status before paying again.",
     "പേയ്‌മെന്റ് പരിശോധിക്കാൻ കഴിഞ്ഞില്ല. വീണ്ടും പണമടയ്ക്കുന്നതിന് മുമ്പ് ബുക്കിംഗ് നില പരിശോധിക്കുക.",

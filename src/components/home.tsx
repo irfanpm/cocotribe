@@ -350,7 +350,7 @@ export function Home({ catalog }: { catalog: Catalog }) {
                 <div style={{marginTop: '24px', display: 'flex', alignItems: 'center', gap: '16px', borderTop: '1px solid var(--color-border)', paddingTop: '16px'}}>
                   <div style={{fontSize: '30px'}}>🤝</div>
                   <div>
-                    <h4 style={{margin: 0}}>{t("Pay at Delivery", "ലഭിക്കുമ്പോൾ പണമടയ്ക്കുക")}</h4>
+                    <h4 style={{margin: 0}}>{t("Cash on Delivery", "ക്യാഷ് ഓൺ ഡെലിവറി")}</h4>
                     <p style={{margin: 0, fontSize: '14px', color: 'var(--color-text-muted)'}}>{t("Also available for selected locations", "തിരഞ്ഞെടുത്ത സ്ഥലങ്ങളിൽ ലഭ്യമാണ്")}</p>
                   </div>
                 </div>

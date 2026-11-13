@@ -200,7 +200,7 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
             {groupProducts(catalog.products).map(variants => <VariantCard key={variants[0].id} variants={variants} number={s.whatsapp} reference />)}
           </div>
         </div>
-        <div className="ref-services">
+        <div className="ref-services" data-hide-mobile-actions>
           <div className="ref-section-heading">
             <div>
               <h2>{t("Other Services", "മറ്റു സേവനങ്ങൾ")}</h2>
@@ -304,7 +304,7 @@ export function ReferenceHome({ catalog }: { catalog: Catalog }) {
             {catalog.settings.deliveryEnabled && <div className="ref-delivery">
               <Banknote size={40} />
               <div>
-                <h3>{t("Pay at Delivery", "ലഭിക്കുമ്പോൾ പണമടയ്ക്കാം")}</h3>
+                <h3>{t("Cash on Delivery", "ക്യാഷ് ഓൺ ഡെലിവറി")}</h3>
                 <p>
                   {t(
                     "Also available for selected locations",
