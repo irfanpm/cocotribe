@@ -1,5 +1,8 @@
 # Releases unpaid Razorpay reservations every 10 minutes. A failed run emails the repository
-# owner and shows red in the Actions tab. Needs repository secrets APP_URL and CRON_SECRET.
+# owner and shows red in the Actions tab.
+# Needs, under Settings > Secrets and variables > Actions:
+#   CRON_SECRET  a repository secret, the same value as CRON_SECRET in Vercel
+#   APP_URL      a repository secret or variable, e.g. https://cocotribe.vercel.app
 # On Vercel Pro you can use vercel.json "*/5 * * * *" instead and disable this workflow.
 name: Reconcile payments
 on:
@@ -14,8 +17,30 @@ jobs:
     steps:
       - name: Call the reconcile endpoint
         env:
-          APP_URL: ${{ secrets.APP_URL }}
+          APP_URL: ${{ secrets.APP_URL || vars.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          curl --fail-with-body --silent --show-error --max-time 90 --retry 2 --retry-all-errors \
-            -X POST -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/reconcile"
+          missing=""
+          [ -n "$APP_URL" ] || missing="$missing APP_URL"
+          [ -n "$CRON_SECRET" ] || missing="$missing CRON_SECRET"
+          if [ -n "$missing" ]; then
+            echo "::error title=Missing settings::Not set:$missing. Add them under Settings > Secrets and variables > Actions (Repository secrets)."
+            exit 1
+          fi
+          case "$APP_URL" in
+            https://*) ;;
+            *) echo "::error title=APP_URL::APP_URL must start with https:// (for example https://cocotribe.vercel.app)."; exit 1 ;;
+          esac
+          url="${APP_URL%/}/api/cron/reconcile"
+          status=$(curl --silent --show-error --max-time 90 --retry 2 --retry-all-errors \
+            -o response.txt -w '%{http_code}' -X POST -H "Authorization: Bearer $CRON_SECRET" "$url") || {
+            echo "::error title=Site unreachable::Could not reach $url"; exit 1; }
+          if [ "$status" = "401" ]; then
+            echo "::error title=Wrong CRON_SECRET::The site refused the secret (401). Make the GitHub CRON_SECRET exactly match the one in Vercel."
+            exit 1
+          fi
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "::error title=Reconcile failed::The site answered HTTP $status: $(head -c 300 response.txt)"
+            exit 1
+          fi
+          echo "Reconcile OK (HTTP $status): $(head -c 300 response.txt)"
