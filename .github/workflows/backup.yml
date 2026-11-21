@@ -1,6 +1,9 @@
 # Nightly encrypted database backup, for Supabase plans without automatic backups.
-# Needs repository secrets BACKUP_DATABASE_URL (the session pooler / DIRECT_URL value) and
-# BACKUP_PASSPHRASE. Dumps contain customer data, so they are encrypted before upload.
+# Needs, under Settings > Secrets and variables > Actions > Repository secrets:
+#   BACKUP_DATABASE_URL  the DIRECT_URL value (session pooler, port 5432; not 6543)
+#   BACKUP_PASSPHRASE    16+ characters; keep a copy somewhere safe, it is needed to restore
+# Dumps contain customer data, so they are encrypted before upload. A failed run names the
+# problem (missing setting, wrong port, wrong password, unknown host).
 # Restore: gpg -d backup.sql.gz.gpg | gunzip | psql "$TARGET_DATABASE_URL"
 name: Database backup
 on:
@@ -26,10 +29,37 @@ jobs:
           BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           set -euo pipefail
-          /usr/lib/postgresql/17/bin/pg_dump --no-owner --no-privileges --schema=public "$BACKUP_DATABASE_URL" \
-            | gzip \
-            | gpg --batch --yes --symmetric --cipher-algo AES256 --pinentry-mode loopback \
-                --passphrase "$BACKUP_PASSPHRASE" -o backup.sql.gz.gpg
+          fail() { echo "::error title=$1::$2"; exit 1; }
+          missing=""
+          [ -n "$BACKUP_DATABASE_URL" ] || missing="$missing BACKUP_DATABASE_URL"
+          [ -n "$BACKUP_PASSPHRASE" ] || missing="$missing BACKUP_PASSPHRASE"
+          [ -z "$missing" ] || fail "Missing settings" "Not set:$missing. Add them under Settings > Secrets and variables > Actions (Repository secrets)."
+          case "$BACKUP_DATABASE_URL" in
+            postgres://*|postgresql://*) ;;
+            *) fail "BACKUP_DATABASE_URL" "It must start with postgresql:// (copy DIRECT_URL, the session pooler on port 5432)." ;;
+          esac
+          case "$BACKUP_DATABASE_URL" in
+            *:6543/*) fail "BACKUP_DATABASE_URL" "This is the transaction pooler (port 6543), which pg_dump cannot use. Use DIRECT_URL, the session pooler on port 5432." ;;
+          esac
+          [ "${#BACKUP_PASSPHRASE}" -ge 16 ] || fail "BACKUP_PASSPHRASE" "Use at least 16 characters, and keep it somewhere safe: backups cannot be opened without it."
+          PG=/usr/lib/postgresql/17/bin
+          # Connection first, so a wrong password or host is named rather than a bare exit code.
+          if ! err=$("$PG/psql" "$BACKUP_DATABASE_URL" -tAc "select 1" 2>&1 >/dev/null); then
+            case "$err" in
+              *"password authentication failed"*) fail "Database password" "The database refused the password. Copy DIRECT_URL again (with the current, URL-encoded password)." ;;
+              *"could not translate host name"*|*"Name or service not known"*) fail "Database host" "The database host name in BACKUP_DATABASE_URL was not found. Copy DIRECT_URL again." ;;
+              *) fail "Database connection" "Could not connect to the database. Check BACKUP_DATABASE_URL (DIRECT_URL, port 5432)." ;;
+            esac
+          fi
+          "$PG/pg_dump" --no-owner --no-privileges --schema=public "$BACKUP_DATABASE_URL" > backup.sql \
+            || fail "pg_dump" "The database dump failed; see the log above."
+          grep -q 'CREATE TABLE public."Order"' backup.sql || fail "Backup incomplete" "The dump does not contain the Order table."
+          gzip -9 backup.sql
+          gpg --batch --yes --symmetric --cipher-algo AES256 --pinentry-mode loopback \
+            --passphrase "$BACKUP_PASSPHRASE" -o backup.sql.gz.gpg backup.sql.gz \
+            || fail "Encryption" "Encrypting the backup failed."
+          rm -f backup.sql.gz
+          echo "Backup ready: $(du -h backup.sql.gz.gpg | cut -f1), encrypted."
       - uses: actions/upload-artifact@v4
         with:
           name: cocotribe-db-${{ github.run_id }}
