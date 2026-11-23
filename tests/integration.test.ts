@@ -56,6 +56,7 @@ test(
       date: indiaDate(new Date(Date.now() + 3 * 86400000)),
       slotId: s.id,
       notes: "Test only",
+      address: "Test Lodge, East Nada, Guruvayur 680101",
       method: "DELIVERY" as const,
       language: "en" as const,
     };

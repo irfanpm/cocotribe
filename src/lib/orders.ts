@@ -300,5 +300,6 @@ export function publicOrder(o: Awaited<ReturnType<typeof getPrivateOrder>>) {
     paymentStatus: o.paymentStatus,
     status: o.status,
     notes: o.notes,
+    address: o.address,
   };
 }

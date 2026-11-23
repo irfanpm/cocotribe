@@ -114,7 +114,8 @@ export function Booking({ catalog }: { catalog: Catalog }) {
   );
   const [name, setName] = useState(""),
     [phone, setPhone] = useState(""),
-    [notes, setNotes] = useState("");
+    [notes, setNotes] = useState(""),
+    [address, setAddress] = useState("");
   const [stage, setStage] = useState(0),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -139,6 +140,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
         setName(String(draft.name || ""));
         setPhone(String(draft.phone || ""));
         setNotes(String(draft.notes || ""));
+        setAddress(String(draft.address || ""));
         if (catalog.products.some((p) => p.id === draft.productId)) setProductId(draft.productId);
         setQuantity(Math.max(1, Math.min(1000, Number(draft.quantity) || 1)));
         setDate(String(draft.date || ""));
@@ -160,12 +162,12 @@ export function Booking({ catalog }: { catalog: Catalog }) {
     try {
       sessionStorage.setItem(
         DRAFT_KEY,
-        JSON.stringify({ name, phone, notes, productId, quantity, date, slotId, method, stage }),
+        JSON.stringify({ name, phone, notes, address, productId, quantity, date, slotId, method, stage }),
       );
     } catch {
       /* Storage blocked: the form still works, it just is not kept across reloads. */
     }
-  }, [restored, name, phone, notes, productId, quantity, date, slotId, method, stage]);
+  }, [restored, name, phone, notes, address, productId, quantity, date, slotId, method, stage]);
   // Stop the browser's pull-to-refresh from reloading the page mid-booking.
   useEffect(() => {
     const root = document.documentElement;
@@ -182,6 +184,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
     e.preventDefault();
     if (!product || product.stock < quantity) { setError("OUT_OF_STOCK"); return; }
     if (!validPhone(phone) || name.trim().length < 2) { setError("INVALID_INPUT"); return; }
+    if (address.trim().length < 10) { setError("ADDRESS_REQUIRED"); return; }
     if (!slot || !validBookingTime(date, slot.startMinute, catalog.settings.leadHours, catalog.settings.maxDays)) { setError("INVALID_SLOT"); return; }
     if (!method || (method === "DELIVERY" ? !catalog.settings.deliveryEnabled : !catalog.online)) { setError("PAYMENT_UNAVAILABLE"); return; }
     setError("");
@@ -204,6 +207,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
           date,
           slotId,
           notes,
+          address,
           method,
           language: lang,
           requestKey: requestKey.current,
@@ -370,6 +374,23 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                 )}
               </p>
               <label className="field">
+                {t("Delivery address", "ഡെലിവറി വിലാസം")}
+                <textarea
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  name="address"
+                  autoComplete="street-address"
+                  rows={3}
+                  required
+                  minLength={10}
+                  maxLength={500}
+                  placeholder={t(
+                    "House or hotel/lodge name, street, area, town, pincode",
+                    "വീട്ടുപേര് / ഹോട്ടൽ അല്ലെങ്കിൽ ലോഡ്ജ്, തെരുവ്, സ്ഥലം, പട്ടണം, പിൻകോഡ്",
+                  )}
+                />
+              </label>
+              <label className="field">
                 {t("Notes (optional)", "കുറിപ്പുകൾ (വേണമെങ്കിൽ)")}
                 <textarea
                   value={notes}
@@ -481,6 +502,7 @@ export function Booking({ catalog }: { catalog: Catalog }) {
                   [t("Date", "തീയതി"), date],
                   [t("Time (IST)", "സമയം (IST)"), slot?.label],
                   [t("Payment", "പേയ്‌മെന്റ്"), t(...statuses[method])],
+                  [t("Delivery address", "ഡെലിവറി വിലാസം"), address],
                   [t("Notes", "കുറിപ്പുകൾ"), notes || "—"],
                 ].map(([k, v]) => (
                   <div key={String(k)}>
@@ -597,6 +619,7 @@ type OrderView = {
   paymentStatus: string;
   status: string;
   notes: string;
+  address?: string;
   gateway: Gateway | null;
 };
 const POLL_MS = 20000;
@@ -805,6 +828,7 @@ export function Confirmation({
                   t("Payment status", "പേയ്‌മെന്റ് നില"),
                   t(...statuses[order.paymentStatus]),
                 ],
+                [t("Delivery address", "ഡെലിവറി വിലാസം"), order.address || "—"],
                 [t("Notes", "കുറിപ്പുകൾ"), order.notes || "—"],
               ].map(([k, v]) => (
                 <div key={String(k)}>

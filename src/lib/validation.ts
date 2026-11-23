@@ -14,6 +14,8 @@ export const bookingSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   slotId: z.string().min(1).max(100),
   notes: z.string().trim().max(1000).default(""),
+  // Where to deliver: house or hotel/lodge name, street, area, town and pincode.
+  address: z.string().trim().min(10).max(500),
   method: z.enum(["DELIVERY", "RAZORPAY"]),
   language: z.enum(["en", "ml", "ta", "hi"]),
   requestKey: z.string().uuid(),

@@ -688,3 +688,6 @@ button.status-stat:focus-visible{outline:3px solid var(--tone);outline-offset:2p
 /* Counts and booking IDs: lining figures in the sans face, so 0/1 never read as O/I. */
 .admin-workspace .stats strong,.stats strong{font-family:inherit;font-weight:700;font-size:2.2rem;line-height:1.1;font-variant-numeric:lining-nums tabular-nums;color:var(--ink,#173d2b)}
 .confirmation .section-heading h2{font-variant-numeric:lining-nums tabular-nums}
+
+/* Admin orders: the delivery address under the customer, kept to two lines. */
+.order-address{display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:240px;color:var(--muted,#5b6166);white-space:normal}

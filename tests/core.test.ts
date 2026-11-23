@@ -204,6 +204,7 @@ test("Client price is stripped, quantity is bounded and method is validated", ()
     expectedUnitPrice: 4000,
     date: "2026-09-22",
     slotId: "morning",
+    address: "Sree Lodge, East Nada, Guruvayur 680101",
     method: "DELIVERY",
     language: "en",
     requestKey: "879ba1a2-bbdd-4a52-977a-217e0ff2a69f",

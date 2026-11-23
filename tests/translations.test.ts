@@ -16,7 +16,7 @@ test('locale choice preserves English and Malayalam and translates dynamic booki
 
 import {bookingSchema} from '../src/lib/validation';
 test('booking API accepts all four customer languages',()=>{
- const data={name:'Language test',phone:'9999999999',productId:'test',quantity:1,expectedUnitPrice:4000,date:'2026-10-10',slotId:'test',method:'DELIVERY',requestKey:'12345678-1234-4123-8123-123456789012'};
+ const data={name:'Language test',phone:'9999999999',productId:'test',quantity:1,expectedUnitPrice:4000,date:'2026-10-10',slotId:'test',address:'Sree Lodge, East Nada, Guruvayur 680101',method:'DELIVERY',requestKey:'12345678-1234-4123-8123-123456789012'};
  for(const language of ['en','ml','ta','hi']) assert.equal(bookingSchema.safeParse({...data,language}).success,true);
  assert.equal(bookingSchema.safeParse({...data,language:'xx'}).success,false);
 });

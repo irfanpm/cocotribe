@@ -206,6 +206,12 @@ async function main() {
     const date = new Date(Date.now() + 3 * 86400000 + 5.5 * 3600000).toISOString().slice(0, 10);
     await page.locator('input[type="date"]').fill(date);
     await page.locator("select").nth(2).selectOption({ index: 1 });
+    // The delivery address is required: without it the form does not go to review.
+    await page.locator('button:has-text("Review my booking")').click();
+    assert.equal(await page.locator('textarea[name="address"]').evaluate((e) => (e as HTMLTextAreaElement).validity.valueMissing), true);
+    assert.equal(await page.locator("text=Everything look right?").count(), 0);
+    await page.locator('textarea[name="address"]').fill("Sree Lodge, East Nada, Guruvayur, Thrissur 680101");
+    step("delivery address is required");
     await page.locator('button:has-text("Review my booking")').click();
     await page.locator('.notice.error[role="alert"]').waitFor();
     step("invalid phone shows a visible error on the form");
@@ -215,6 +221,7 @@ async function main() {
     await page.locator("text=Everything look right?").waitFor();
     const review = (await page.locator(".panel").first().textContent()) || "";
     assert.match(review, /E2E Customer/);
+    assert.match(review, /Sree Lodge, East Nada/);
     assert.match(review, /₹250/);
     assert.match(review, new RegExp(date));
     if (shots) await page.screenshot({ path: `${shots}/review.png`, fullPage: true });
@@ -235,6 +242,8 @@ async function main() {
     const bookingUrl = page.url();
     await page.locator('h1:has-text("Your booking has been received.")').waitFor();
     assert.match((await page.locator("main").textContent()) || "", /Cash on Delivery/);
+    assert.match((await page.locator("main").textContent()) || "", /Sree Lodge, East Nada/, "address on the receipt");
+    assert.equal((await db.order.findFirstOrThrow({ where: { name: "E2E Customer" } })).address, "Sree Lodge, East Nada, Guruvayur, Thrissur 680101");
     assert.equal((await db.product.findUniqueOrThrow({ where: { slug: "pooja-coconut-10" } })).stock, 9, "stock reserved");
     assert.equal(await db.order.count({ where: { name: "E2E Customer" } }), 1, "exactly one booking after retry");
     if (shots) await page.screenshot({ path: `${shots}/receipt.png`, fullPage: true });

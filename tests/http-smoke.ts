@@ -223,6 +223,7 @@ async function main() {
       date: indiaDate(new Date(Date.now() + 5 * 86400000)),
       slotId: slot.id,
       notes: "Automated isolated test",
+      address: "Test Lodge, East Nada, Guruvayur 680101",
       method: "DELIVERY",
       language: "ml",
       requestKey: randomUUID(),
@@ -237,6 +238,9 @@ async function main() {
     const booking = await response.json();
     assert.equal(booking.order.total, 12000, "Server controls pricing");
     assert.equal(booking.order.status, "PENDING");
+    const { address: _address, ...noAddress } = base;
+    assert.equal((await post("/api/bookings", { ...noAddress, requestKey: randomUUID() })).status, 400, "an address is required");
+    assert.equal((await post("/api/bookings", { ...base, address: "short", requestKey: randomUUID() })).status, 400, "a real address is required");
     const duplicate = await (await post("/api/bookings", base)).json();
     assert.equal(duplicate.order.bookingId, booking.order.bookingId);
     // Status from a WhatsApp link: needs the booking's phone number, in any common format.

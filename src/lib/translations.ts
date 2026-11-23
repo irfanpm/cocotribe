@@ -148,6 +148,18 @@ export const translations: Record<string, {ta: string; hi: string}> = {
     "ta": "பணம் செலுத்தும் முறையைத் தேர்ந்தெடுக்கவும்",
     "hi": "भुगतान का तरीका चुनें"
   },
+  "Delivery address": {
+    "ta": "டெலிவரி முகவரி",
+    "hi": "डिलीवरी का पता"
+  },
+  "House or hotel/lodge name, street, area, town, pincode": {
+    "ta": "வீடு அல்லது ஹோட்டல்/லாட்ஜ் பெயர், தெரு, பகுதி, ஊர், அஞ்சல் குறியீடு",
+    "hi": "घर या होटल/लॉज का नाम, गली, इलाका, शहर, पिनकोड"
+  },
+  "Please enter your full delivery address: house or hotel name, street, area and pincode.": {
+    "ta": "முழு டெலிவரி முகவரியை உள்ளிடவும்: வீடு அல்லது ஹோட்டல் பெயர், தெரு, பகுதி மற்றும் அஞ்சல் குறியீடு.",
+    "hi": "कृपया पूरा डिलीवरी पता दर्ज करें: घर या होटल का नाम, गली, इलाका और पिनकोड।"
+  },
   "Check your booking status": {
     "ta": "உங்கள் முன்பதிவு நிலையைப் பார்க்கவும்",
     "hi": "अपनी बुकिंग की स्थिति देखें"

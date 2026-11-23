@@ -65,6 +65,7 @@ model Order {
   slot TimeSlot @relation(fields:[slotId],references:[id])
   slotLabel String
   notes String @default("")
+  address String @default("")
   language String @default("en")
   method PaymentMethod
   paymentStatus PaymentStatus @default(PENDING)

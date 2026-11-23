@@ -26,6 +26,7 @@ type AdminOrder = {
   paymentStatus: string;
   status: string;
   notes: string;
+  address?: string;
   createdAt: string;
 };
 type AdminData = {
@@ -220,7 +221,7 @@ const previewOrders: AdminOrder[] = ["CONFIRMED", "READY", "PENDING"].map((statu
   id: `preview-${i}`, bookingId: `DEMO-100${i + 1}`, name: `Sample Customer ${i + 1}`, phone: "0000000000",
   productNameEn: "Fresh Coconut", productNameMl: "പുതിയ തേങ്ങ", language: "en", quantity: (i + 1) * 5, date: new Date().toISOString().slice(0,10),
   slotLabel: "09:00 – 12:00", total: (i + 1) * 20000, method: i === 1 ? "RAZORPAY" : "DELIVERY",
-  paymentStatus: i === 1 ? "PAID" : "PENDING", status, notes: "Fictional booking for dashboard preview.", createdAt: new Date().toISOString()
+  paymentStatus: i === 1 ? "PAID" : "PENDING", status, notes: "Fictional booking for dashboard preview.", address: "Sample Lodge, East Nada, Guruvayur 680101", createdAt: new Date().toISOString()
 }));
 /** The order as it will be saved: the server turns a paid order into a refund when it is cancelled. */
 function afterSave(order: AdminOrder): AdminOrder {
@@ -636,6 +637,7 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
                           <small>
                             <a href={`tel:+${o.phone}`}>{o.phone}</a>
                           </small>
+                          {o.address && <small className="order-address" title={o.address}>{o.address}</small>}
                         </td>
                         <td>
                           {o.productNameEn}
@@ -1084,6 +1086,21 @@ export function AdminDashboard({ preview = false }: { preview?: boolean }) {
             <p>
               {selected.date} · {selected.slotLabel} IST
             </p>
+            {selected.address ? (
+              <p className="preserve-lines">
+                <strong>Delivery address:</strong> {selected.address}{" "}
+                <a
+                  className="text-link"
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selected.address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open in Maps
+                </a>
+              </p>
+            ) : (
+              <p className="muted">No delivery address (booked before addresses were asked).</p>
+            )}
             <p className="preserve-lines">{selected.notes || "No notes."}</p>
             <label className="field">
               Order status

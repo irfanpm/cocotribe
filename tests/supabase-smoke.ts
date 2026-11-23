@@ -109,6 +109,7 @@ async function main() {
       date: indiaDate(new Date(Date.now() + 5 * 86400000)),
       slotId: slot.id,
       notes: "Automated isolated test",
+      address: "Test Lodge, East Nada, Guruvayur 680101",
       method: "DELIVERY",
       language: "ta",
       requestKey: randomUUID(),

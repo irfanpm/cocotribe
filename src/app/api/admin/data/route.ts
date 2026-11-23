@@ -21,6 +21,7 @@ export async function GET(request: Request) {
               { bookingId: { contains: search, mode: "insensitive" as const } },
               { name: { contains: search, mode: "insensitive" as const } },
               { phone: { contains: search } },
+              { address: { contains: search, mode: "insensitive" as const } },
             ],
           }
         : {}),
